@@ -3,8 +3,8 @@ name: Update Minnesota election results
 on:
   workflow_dispatch:
   schedule:
-    # One daily test/update run before and after Election Day.
-    - cron: '17 10 * * *'
+    # One daily test/update run before and after Election Day (10:11 a.m. Central).
+    - cron: '11 10 * * *'
       timezone: 'America/Chicago'
 
     # Election Day, Nov. 3: every 15 minutes from 5 a.m. through 6:59 p.m. Central.
