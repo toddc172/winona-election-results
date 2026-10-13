@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "election": "2026 Minnesota State General Election",
+    "electionDate": "2026-11-03",
+    "source": "Minnesota Secretary of State",
+    "sourceBaseUrl": "https://electionresultsfiles.sos.mn.gov/20261103/",
+    "generatedAt": null,
+    "feedCount": 15,
+    "successfulFeeds": 0,
+    "staleFeeds": 0,
+    "unavailableFeeds": 15
+  },
+  "feeds": {}
+}
