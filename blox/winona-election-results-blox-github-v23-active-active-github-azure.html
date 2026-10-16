@@ -1,0 +1,4386 @@
+<!-- v23: active-active GitHub + Azure relay selection, raw GitHub fallback, browser last-good snapshot -->
+<div id="wde-election-results" class="wde-election-results">
+  <div class="wde-er-head">
+    <div>
+      <p class="wde-er-kicker">2026 GENERAL ELECTION</p>
+      <h2>Winona-area election results</h2>
+      <p class="wde-er-deck">Unofficial results from the Minnesota Secretary of State. Results update automatically as state data changes.</p>
+    </div>
+    <div class="wde-er-meta">
+      <div id="wde-er-updated" role="status" aria-live="polite">Last updated: --</div>
+      <button id="wde-er-refresh" type="button">Refresh results</button>
+    </div>
+  </div>
+
+  <div class="wde-er-key" role="note">
+    <span><strong>(I)</strong> = incumbent</span>
+    <span><strong class="wde-winner-key">&#10003;</strong> = winner/called winner</span>
+  </div>
+
+  <nav id="wde-er-nav" class="wde-er-nav" aria-label="Election result sections"></nav>
+  <button id="wde-er-expand-all" class="wde-er-expand-all" type="button" aria-expanded="false">Expand all results</button>
+  <div id="wde-er-sections"></div>
+
+  <p class="wde-er-source">Source: Minnesota Secretary of State. Results are unofficial until canvassed and certified.</p>
+</div>
+
+<style>
+#wde-election-results{--wde-border:#d8d8d8;--wde-muted:#666;--wde-bg:#fff;--wde-soft:#f5f5f5;--wde-text:#171717;--wde-green:#138a36;font-family:Arial,Helvetica,sans-serif;color:var(--wde-text);background:var(--wde-bg);width:100%;max-width:420px;margin:0 auto;line-height:1.35;min-width:0}
+#wde-election-results *{box-sizing:border-box;min-width:0}
+#wde-election-results .wde-er-head{display:block;border-bottom:3px solid var(--wde-text);padding-bottom:12px;margin-bottom:10px}
+#wde-election-results h2{font-size:30px;line-height:1.02;margin:0 0 8px;font-weight:800;overflow-wrap:anywhere}
+#wde-election-results .wde-er-kicker{font-size:11px;font-weight:800;letter-spacing:.08em;margin:0 0 5px}
+#wde-election-results .wde-er-deck{font-size:13px;line-height:1.4;margin:0;color:#3f3f3f}
+#wde-election-results .wde-er-meta{text-align:left;font-size:11px;color:var(--wde-muted);margin-top:10px}
+#wde-election-results button{display:block;width:100%;margin-top:7px;border:1px solid #999;background:#fff;padding:7px 10px;border-radius:3px;font-weight:700;cursor:pointer}
+#wde-election-results button:hover,#wde-election-results button:focus{background:var(--wde-soft)}
+#wde-election-results .wde-er-key{display:grid;grid-template-columns:1fr;gap:4px;font-size:11px;color:#444;padding:7px 0 10px}
+#wde-election-results .wde-winner-key,#wde-election-results .wde-winner{color:var(--wde-green);font-weight:900}
+#wde-election-results .wde-er-nav{display:flex;flex-direction:column;align-items:flex-start;gap:6px;overflow:visible;padding:4px 0 14px}
+#wde-election-results .wde-er-nav::before{content:"Jump to results:";display:block;margin-bottom:1px;font-size:10px;line-height:1.2;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--wde-muted)}
+#wde-election-results .wde-er-nav a{display:inline-flex;align-items:center;width:auto;max-width:100%;white-space:normal;text-decoration:none;border:1px solid #b8b8b8;color:var(--wde-text);padding:4px 9px;border-radius:999px;font-size:11px;line-height:1.2;font-weight:700;background:var(--wde-soft);box-shadow:none}
+#wde-election-results .wde-er-nav a::before{content:"↓";display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;width:16px;height:16px;margin-right:6px;border-radius:50%;background:#fff;border:1px solid #c8c8c8;font-size:10px;line-height:1}
+#wde-election-results .wde-er-nav a:hover,#wde-election-results .wde-er-nav a:focus{background:#fff;border-color:#777;text-decoration:underline;text-underline-offset:2px}
+#wde-election-results .wde-er-status{background:var(--wde-soft);border:1px solid var(--wde-border);padding:8px 9px;font-size:12px;line-height:1.35;margin-bottom:14px;overflow-wrap:anywhere}
+#wde-election-results .wde-er-status:empty{display:none}
+#wde-election-results .wde-er-expand-all{display:block;margin:0 0 9px;padding:8px 10px;font-size:12px}
+#wde-election-results .wde-er-section{margin:0;border-top:1px solid var(--wde-border)}
+#wde-election-results .wde-er-section:last-child{border-bottom:1px solid var(--wde-border)}
+#wde-election-results .wde-er-section h3{margin:0;padding:0;border:0;font-size:16px;line-height:1.2}
+#wde-election-results .wde-er-section-title-text{display:none}
+#wde-election-results .wde-er-category-toggle{display:flex;width:100%;margin:0;border:0;border-radius:0;background:#fff;padding:11px 2px;align-items:center;justify-content:space-between;gap:10px;text-align:left;font-size:15px;line-height:1.2;font-weight:800}
+#wde-election-results .wde-er-category-toggle:hover,#wde-election-results .wde-er-category-toggle:focus{background:var(--wde-soft)}
+#wde-election-results .wde-er-category-toggle-icon{flex:0 0 auto;font-size:14px;line-height:1;transition:transform .15s ease}
+#wde-election-results .wde-er-category-toggle[aria-expanded="true"] .wde-er-category-toggle-icon{transform:rotate(180deg)}
+#wde-election-results .wde-er-grid{display:none;grid-template-columns:1fr;gap:10px;padding:2px 0 14px}
+#wde-election-results .wde-er-section.is-open .wde-er-grid{display:grid}
+#wde-election-results .wde-er-section.is-open{padding-bottom:3px}
+#wde-election-results .wde-race{border:1px solid var(--wde-border);border-radius:4px;padding:11px;background:#fff;width:100%;overflow:hidden}
+#wde-election-results .wde-race h4{font-size:16px;line-height:1.2;margin:0 0 4px;overflow-wrap:anywhere}
+#wde-election-results .wde-question-text{font-size:12px;line-height:1.45;margin:7px 0 9px;color:var(--wde-text);overflow-wrap:anywhere}
+#wde-election-results .wde-reporting{font-size:11px;line-height:1.3;color:var(--wde-muted);margin-bottom:3px}
+#wde-election-results .wde-total-votes{font-size:11px;color:var(--wde-muted);margin-bottom:8px}
+#wde-election-results .wde-candidate{padding:7px 0;border-top:1px solid #ececec}
+#wde-election-results .wde-candidate:first-of-type{border-top:0}
+#wde-election-results .wde-candidate-line{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:8px}
+#wde-election-results .wde-candidate-name{font-size:13px;line-height:1.25;font-weight:700;overflow-wrap:anywhere}
+#wde-election-results .wde-party{font-weight:400;color:var(--wde-muted);font-size:11px}
+#wde-election-results .wde-vote{font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap;text-align:right}
+#wde-election-results .wde-bar{height:5px;background:#e8e8e8;margin-top:5px;overflow:hidden;border-radius:3px}
+#wde-election-results .wde-bar>span{display:block;height:100%;background:#777;max-width:100%}
+#wde-election-results .wde-winner{font-size:15px;margin-left:4px}
+#wde-election-results .wde-called{font-size:9px;color:var(--wde-green);font-weight:700;margin-left:4px;text-transform:uppercase;letter-spacing:.02em}
+#wde-election-results .wde-error{color:#7a1919;font-size:12px;padding:8px 0}
+#wde-election-results .wde-er-source{font-size:10px;line-height:1.4;color:var(--wde-muted);border-top:1px solid var(--wde-border);padding-top:9px;margin-top:18px}
+@media(max-width:340px){#wde-election-results h2{font-size:27px}#wde-election-results .wde-candidate-line{grid-template-columns:1fr}#wde-election-results .wde-vote{text-align:left;margin-top:2px}}
+</style>
+
+<script>
+/* ================================================================
+   NEWSROOM MANUAL WINNER OVERRIDES
+
+   Add a race only when staff wants a green check before 100% reporting.
+   Use the exact candidate display name from the manifest.
+
+   HOW TO USE THIS REFERENCE:
+   1. Find the contested race below.
+   2. Copy its commented template line into WDE_MANUAL_WINNERS.
+   3. Remove the leading // and replace WINNER NAME / WINNER 1, etc.
+      with the exact candidate name shown in the comment.
+   4. For ballot questions, use "YES" or "NO".
+   5. Delete the active entry to remove a manual checkmark.
+
+   Uncontested races are intentionally omitted from this reference.
+   Their winner checkmarks will be handled automatically when reporting reaches 100%.
+
+   COPY/PASTE RACE REFERENCE
+
+   FEDERAL
+   // "minnesota-u-s-senator": "WINNER NAME", // U.S. Senate — candidates: Marisa Simonetti | Rebecca Whiting | Peggy Flanagan | Michele Tafoya
+   // "congressional-district-1-u-s-representative-district-1": "WINNER NAME", // U.S. House, District 1 — candidates: Jake Johnson | Brad Finstad
+
+   STATEWIDE
+   // "minnesota-governor-and-lt-governor": "WINNER NAME", // Governor and lieutenant governor — candidates: Steven Young / Jane Kirby | Amy Klobuchar / Ben Schierer | Lisa Demuth / Ryan Wilson
+   // "minnesota-secretary-of-state": "WINNER NAME", // Secretary of state — candidates: Steve Simon | Seth Kuhl-Stennes | Tad Jude | George "Chip" Tangen
+   // "minnesota-state-auditor": "WINNER NAME", // State auditor — candidates: Jay Reeves | Scott Jensen | Zack Filipovich
+   // "minnesota-attorney-general": "WINNER NAME", // Attorney general — candidates: Keith Ellison | Ronald J. "Ron" Schutz
+
+   MINNESOTA LEGISLATURE
+   // "senate-district-20-state-senator-district-20": "WINNER NAME", // Minnesota Senate, District 20 — candidates: Steven E. Jacob | Jason Lohmann
+   // "house-district-20b-state-representative-district-20b": "WINNER NAME", // Minnesota House, District 20B — candidates: Steve Holm | Sara Bertschinger
+   // "senate-district-26-state-senator-district-26": "WINNER NAME", // Minnesota Senate, District 26 — candidates: Cherie Johnson | Jack Hedin
+   // "house-district-26a-state-representative-district-26a": "WINNER NAME", // Minnesota House, District 26A — candidates: Dan Wilson | Aaron Repinski
+
+   WINONA COUNTY
+   // "winona-county-county-commissioner-district-2": "WINNER NAME", // Winona County commissioner, District 2 — candidates: Patrick Moga | Dwayne Voegeli
+   // "winona-county-county-commissioner-district-5": "WINNER NAME", // Winona County commissioner, District 5 — candidates: Bob Redig | Marcia L. Ward
+   // "winona-county-county-recorder": "WINNER NAME", // Winona County recorder — candidates: Bob Bambenek | Annette Deyo
+   // "winona-county-county-sheriff": "WINNER NAME", // Winona County sheriff — candidates: John Hazelton | Charles Rolbiecki
+
+   CITIES
+   // "dakota-council-member-dakota": "WINNER NAME", // Dakota council member — candidates: Chuck Hansen | Angela Paul
+   // "elba-council-member-elba": "WINNER NAME", // Elba council member — candidates: Chris Heim | Beth Kieffer
+   // "la-crescent-mayor-la-crescent": "WINNER NAME", // La Crescent mayor — candidates: April Carlson | Mikel Poellinger
+   // "la-crescent-council-member-la-crescent-elect-2": ["WINNER 1", "WINNER 2"], // La Crescent council member (elect 2) — candidates: Steve Bissen | Nathan Delarwelle | Ryan Hanifl | Steve Jansen | Teresa O'Donnell-Ebner | Adam Peterson | Joel Schmit | Chris Welnetz
+   // "rollingstone-council-member-rollingstone-elect-2": ["WINNER 1", "WINNER 2"], // Rollingstone council member (elect 2) — candidates: Johnathon Gust | Geri Lehnertz | Alexander Moudry | Zachary Speltz | Randall Sullivan
+   // "st-charles-mayor-st-charles": "WINNER NAME", // St. Charles mayor — candidates: John Schaber | Mitchell Walch
+   // "stockton-council-member-stockton": ["WINNER 1", "WINNER 2"], // Stockton council member (elect 2) — candidates: Julia Giebel | Brian Koetz | Corey Schell
+   // "winona-council-member-ward-2-winona": "WINNER NAME", // Winona City Council, Ward 2 — candidates: Autumn Leigh Cole | Jeff Hyma
+   // "winona-council-member-ward-4-winona": "WINNER NAME", // Winona City Council, Ward 4 — candidates: Raelynn Peter | Sarah Phan-Budd
+
+   TOWNSHIPS
+   // "dresbach-township-town-supervisor-seat-c": "WINNER NAME", // Dresbach Township supervisor, Seat C — candidates: Steven E. Hedberg | Andrew Hughes | Paul Shimshak
+
+   SCHOOL DISTRICTS
+   // "isd-227-school-board-member-isd-227-elect-3": ["WINNER 1", "WINNER 2", "WINNER 3"], // Chatfield School Board (elect 3) — candidates: Jeremiah Halloran | Danielle Hoffman | Mark Johnsrud | David Sovinski | Josh Thompson
+   // "isd-239-school-board-member-at-large-isd-239-elect-3": ["WINNER 1", "WINNER 2", "WINNER 3"], // Rushford-Peterson School Board, at large (elect 3) — candidates: Brett Kues | Jeff Michel | Carl Schollmeier | Nancy Snyder
+   // "isd-294-school-board-member-isd-294-elect-4": ["WINNER 1", "WINNER 2", "WINNER 3", "WINNER 4"], // Houston School Board (elect 4) — candidates: Michael Boldt | Thomas "T.J." Frey | Nicole Johnson | Sara Laufenberg | Lisa Schultz | Valerie Traun
+   // "isd-857-school-board-member-isd-857-elect-3": ["WINNER 1", "WINNER 2", "WINNER 3"], // Lewiston-Altura School Board (elect 3) — candidates: David J. Baer | Sara Daley | Daniel Kreidermacher | Christine Peterson
+   // "isd-858-school-board-member-isd-858-elect-4": ["WINNER 1", "WINNER 2", "WINNER 3", "WINNER 4"], // St. Charles School Board (elect 4) — candidates: Brian Bloom | Molly A. Greden | Travis Lange | Eric Manley | Trevor Moore | Elizabeth Peitzman
+   // "isd-861-school-board-member-district-1-isd-861": "WINNER NAME", // Winona Area Public Schools board, District 1 — candidates: Michelle Cochran | Ted Hazelton
+   // "isd-2899-school-board-member-isd-2899-elect-4": ["WINNER 1", "WINNER 2", "WINNER 3", "WINNER 4"], // Plainview-Elgin-Millville School Board (elect 4) — candidates: Brian Durgin | Julie Hart | Tonya Hulberg | Nick Kedrowski | Theresa "Tina" Keilholtz | Logan Kolb | Jeff Kruger | Roger Rahman | Heidi Schumacher | Ronald Springer
+   // "isd-2899-special-election-for-school-board-member-isd-2899": "WINNER NAME", // Plainview-Elgin-Millville School Board special election — candidates: Sue Tangen | Marilyn Wozney
+
+   BALLOT QUESTIONS
+   // "minnesota-constitutional-amendment": "YES", // Constitutional amendment: Increasing funding to school districts — use YES or NO
+   // "isd-858-school-district-question-1": "YES", // St. Charles Public Schools Question 1 — use YES or NO
+   // "isd-861-school-district-question-1": "YES", // Winona Area Public Schools Question 1 — use YES or NO
+   ================================================================ */
+window.WDE_MANUAL_WINNERS = {
+  // Paste active race calls here. Example:
+  // "congressional-district-1-u-s-representative-district-1": "Brad Finstad",
+};
+</script>
+<script>
+/* ================================================================
+   LIVE ELECTION-RESULTS FEEDS
+   Active-active independent relays for Minnesota Secretary of State
+   result files. GitHub Pages and Azure Static Web Apps are checked in
+   parallel and the freshest valid bundle is used. raw GitHub remains
+   a deeper read-path fallback.
+   ================================================================ */
+window.WDE_GITHUB_RESULTS_URL =
+  "https://toddc172.github.io/winona-election-results/results.json";
+window.WDE_AZURE_RESULTS_URL =
+  "https://agreeable-ground-0f0ceab10.5.azurestaticapps.net/results.json";
+window.WDE_GITHUB_RESULTS_FALLBACK_URL =
+  "https://raw.githubusercontent.com/toddc172/winona-election-results/main/docs/results.json";
+</script>
+<script>
+window.WINONA_ELECTION_MANIFEST_V2 = {
+  "election": {
+    "name": "Minnesota State General Election",
+    "date": "2026-11-03",
+    "sosElectionId": 201,
+    "status": "test-results",
+    "source": "Minnesota Secretary of State"
+  },
+  "display": {
+    "incumbentKey": "(I) = incumbent"
+  },
+  "races": [
+    {
+      "id": "minnesota-u-s-senator",
+      "category": "federal",
+      "jurisdiction": "Minnesota",
+      "office": "U.S. Senator",
+      "displayTitle": "U.S. Senate",
+      "electN": 1,
+      "sosOfficeMatch": "U.S. Senator",
+      "candidates": [
+        {
+          "sosName": "Marisa Simonetti",
+          "displayName": "Marisa Simonetti",
+          "party": "Independent"
+        },
+        {
+          "sosName": "Rebecca Whiting",
+          "displayName": "Rebecca Whiting",
+          "party": "Libertarian"
+        },
+        {
+          "sosName": "Peggy Flanagan",
+          "displayName": "Peggy Flanagan",
+          "party": "DFL"
+        },
+        {
+          "sosName": "Michele Tafoya",
+          "displayName": "Michele Tafoya",
+          "party": "Republican"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "usSenate",
+        "file": "ussenate.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/ussenate.txt",
+        "officeId": "0102",
+        "officeName": "U.S. Senator",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Marisa Simonetti",
+          "Rebecca Whiting",
+          "Peggy Flanagan",
+          "Michele Tafoya"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "congressional-district-1-u-s-representative-district-1",
+      "category": "federal",
+      "jurisdiction": "Congressional District 1",
+      "office": "U.S. Representative District 1",
+      "displayTitle": "U.S. House, District 1",
+      "electN": 1,
+      "sosOfficeMatch": "U.S. Representative District 1",
+      "candidates": [
+        {
+          "sosName": "Jake Johnson",
+          "displayName": "Jake Johnson",
+          "party": "DFL"
+        },
+        {
+          "sosName": "Brad Finstad",
+          "displayName": "Brad Finstad",
+          "party": "Republican",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "usHouse",
+        "file": "ushouse.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/ushouse.txt",
+        "officeId": "0104",
+        "officeName": "U.S. Representative District 1",
+        "district": "1",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Jake Johnson",
+          "Brad Finstad"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-governor-and-lt-governor",
+      "category": "statewide",
+      "jurisdiction": "Minnesota",
+      "office": "Governor & Lt Governor",
+      "displayTitle": "Governor and lieutenant governor",
+      "electN": 1,
+      "sosOfficeMatch": "Governor & Lt Governor",
+      "candidates": [
+        {
+          "sosName": "Steven Young and Jane Kirby",
+          "displayName": "Steven Young / Jane Kirby",
+          "party": "Green"
+        },
+        {
+          "sosName": "Amy Klobuchar and Ben Schierer",
+          "displayName": "Amy Klobuchar / Ben Schierer",
+          "party": "DFL"
+        },
+        {
+          "sosName": "Lisa Demuth and Ryan Wilson",
+          "displayName": "Lisa Demuth / Ryan Wilson",
+          "party": "Republican"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "governor",
+        "file": "Governor.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/Governor.txt",
+        "officeId": "0331",
+        "officeName": "Governor & Lt Governor",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Steven Young and Jane Kirby",
+          "Amy Klobuchar and Ben Schierer",
+          "Lisa Demuth and Ryan Wilson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-secretary-of-state",
+      "category": "statewide",
+      "jurisdiction": "Minnesota",
+      "office": "Secretary of State",
+      "displayTitle": "Secretary of state",
+      "electN": 1,
+      "sosOfficeMatch": "Secretary of State",
+      "candidates": [
+        {
+          "sosName": "Steve Simon",
+          "displayName": "Steve Simon",
+          "party": "DFL",
+          "incumbent": true
+        },
+        {
+          "sosName": "Seth Kuhl-Stennes",
+          "displayName": "Seth Kuhl-Stennes",
+          "party": "Green"
+        },
+        {
+          "sosName": "Tad Jude",
+          "displayName": "Tad Jude",
+          "party": "Republican"
+        },
+        {
+          "sosName": "George \"Chip\" Tangen",
+          "displayName": "George \"Chip\" Tangen",
+          "party": "Libertarian"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "secretaryOfState",
+        "file": "secofstate.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/secofstate.txt",
+        "officeId": "0332",
+        "officeName": "Secretary of State",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Steve Simon",
+          "Seth Kuhl-Stennes",
+          "Tad Jude",
+          "George \"Chip\" Tangen"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-state-auditor",
+      "category": "statewide",
+      "jurisdiction": "Minnesota",
+      "office": "State Auditor",
+      "displayTitle": "State auditor",
+      "electN": 1,
+      "sosOfficeMatch": "State Auditor",
+      "candidates": [
+        {
+          "sosName": "Jay Reeves",
+          "displayName": "Jay Reeves",
+          "party": "Forward-Independence"
+        },
+        {
+          "sosName": "Scott Jensen",
+          "displayName": "Scott Jensen",
+          "party": "Republican"
+        },
+        {
+          "sosName": "Zack Filipovich",
+          "displayName": "Zack Filipovich",
+          "party": "DFL"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "stateAuditor",
+        "file": "auditor.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/auditor.txt",
+        "officeId": "0333",
+        "officeName": "State Auditor",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Jay Reeves",
+          "Scott Jensen",
+          "Zack Filipovich"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-attorney-general",
+      "category": "statewide",
+      "jurisdiction": "Minnesota",
+      "office": "Attorney General",
+      "displayTitle": "Attorney general",
+      "electN": 1,
+      "sosOfficeMatch": "Attorney General",
+      "candidates": [
+        {
+          "sosName": "Keith Ellison",
+          "displayName": "Keith Ellison",
+          "party": "DFL",
+          "incumbent": true
+        },
+        {
+          "sosName": "Ronald J. Schutz",
+          "displayName": "Ronald J. \"Ron\" Schutz",
+          "party": "Republican"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "attorneyGeneral",
+        "file": "attorneygen.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/attorneygen.txt",
+        "officeId": "0335",
+        "officeName": "Attorney General",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Keith Ellison",
+          "Ronald J. Schutz"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "senate-district-20-state-senator-district-20",
+      "category": "legislature",
+      "jurisdiction": "Senate District 20",
+      "office": "State Senator District 20",
+      "displayTitle": "Minnesota Senate, District 20",
+      "electN": 1,
+      "sosOfficeMatch": "State Senator District 20",
+      "candidates": [
+        {
+          "sosName": "Steven E Jacob",
+          "displayName": "Steven E. Jacob",
+          "party": "Republican"
+        },
+        {
+          "sosName": "Jason Lohmann",
+          "displayName": "Jason Lohmann",
+          "party": "DFL"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "stateSenate",
+        "file": "stsenate.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/stsenate.txt",
+        "officeId": "0140",
+        "officeName": "State Senator District 20",
+        "district": "20",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Steven E Jacob",
+          "Jason Lohmann"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "house-district-20b-state-representative-district-20b",
+      "category": "legislature",
+      "jurisdiction": "House District 20B",
+      "office": "State Representative District 20B",
+      "displayTitle": "Minnesota House, District 20B",
+      "electN": 1,
+      "sosOfficeMatch": "State Representative District 20B",
+      "candidates": [
+        {
+          "sosName": "Steve Holm",
+          "displayName": "Steve Holm",
+          "party": "DFL"
+        },
+        {
+          "sosName": "Sara Bertschinger",
+          "displayName": "Sara Bertschinger",
+          "party": "Republican"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "stateHouse",
+        "file": "LegislativeByDistrict.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/LegislativeByDistrict.txt",
+        "officeId": null,
+        "officeName": "State Representative District 20B",
+        "district": "20B",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Steve Holm",
+          "Sara Bertschinger"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "senate-district-26-state-senator-district-26",
+      "category": "legislature",
+      "jurisdiction": "Senate District 26",
+      "office": "State Senator District 26",
+      "displayTitle": "Minnesota Senate, District 26",
+      "electN": 1,
+      "sosOfficeMatch": "State Senator District 26",
+      "candidates": [
+        {
+          "sosName": "Cherie Johnson",
+          "displayName": "Cherie Johnson",
+          "party": "Republican"
+        },
+        {
+          "sosName": "Jack Hedin",
+          "displayName": "Jack Hedin",
+          "party": "DFL"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "stateSenate",
+        "file": "stsenate.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/stsenate.txt",
+        "officeId": "0146",
+        "officeName": "State Senator District 26",
+        "district": "26",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Cherie Johnson",
+          "Jack Hedin"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "house-district-26a-state-representative-district-26a",
+      "category": "legislature",
+      "jurisdiction": "House District 26A",
+      "office": "State Representative District 26A",
+      "displayTitle": "Minnesota House, District 26A",
+      "electN": 1,
+      "sosOfficeMatch": "State Representative District 26A",
+      "candidates": [
+        {
+          "sosName": "Dan Wilson",
+          "displayName": "Dan Wilson",
+          "party": "DFL"
+        },
+        {
+          "sosName": "Aaron Repinski",
+          "displayName": "Aaron Repinski",
+          "party": "Republican",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "stateHouse",
+        "file": "LegislativeByDistrict.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/LegislativeByDistrict.txt",
+        "officeId": null,
+        "officeName": "State Representative District 26A",
+        "district": "26A",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Dan Wilson",
+          "Aaron Repinski"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-commissioner-district-1",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Commissioner District 1",
+      "displayTitle": "Winona County commissioner, District 1",
+      "electN": 1,
+      "sosOfficeMatch": "County Commissioner District 1",
+      "candidates": [
+        {
+          "sosName": "Chris Meyer",
+          "displayName": "Chris Meyer",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Commissioner District 1",
+        "district": "1",
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Chris Meyer"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-commissioner-district-2",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Commissioner District 2",
+      "displayTitle": "Winona County commissioner, District 2",
+      "electN": 1,
+      "sosOfficeMatch": "County Commissioner District 2",
+      "candidates": [
+        {
+          "sosName": "Patrick Moga",
+          "displayName": "Patrick Moga"
+        },
+        {
+          "sosName": "Dwayne Voegeli",
+          "displayName": "Dwayne Voegeli",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Commissioner District 2",
+        "district": "2",
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Patrick Moga",
+          "Dwayne Voegeli"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-commissioner-district-5",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Commissioner District 5",
+      "displayTitle": "Winona County commissioner, District 5",
+      "electN": 1,
+      "sosOfficeMatch": "County Commissioner District 5",
+      "candidates": [
+        {
+          "sosName": "Bob Redig",
+          "displayName": "Bob Redig"
+        },
+        {
+          "sosName": "Marcia L. Ward",
+          "displayName": "Marcia L. Ward",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Commissioner District 5",
+        "district": "5",
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Bob Redig",
+          "Marcia L. Ward"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-auditor-treasurer",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Auditor/Treasurer",
+      "displayTitle": "Winona County auditor/treasurer",
+      "electN": 1,
+      "sosOfficeMatch": "County Auditor/Treasurer",
+      "candidates": [
+        {
+          "sosName": "Chelsi Wilbright",
+          "displayName": "Chelsi Wilbright",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Auditor/Treasurer",
+        "district": null,
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Chelsi Wilbright"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-recorder",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Recorder",
+      "displayTitle": "Winona County recorder",
+      "electN": 1,
+      "sosOfficeMatch": "County Recorder",
+      "candidates": [
+        {
+          "sosName": "Bob Bambenek",
+          "displayName": "Bob Bambenek",
+          "incumbent": true
+        },
+        {
+          "sosName": "Annette Deyo",
+          "displayName": "Annette Deyo"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Recorder",
+        "district": null,
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Bob Bambenek",
+          "Annette Deyo"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-sheriff",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Sheriff",
+      "displayTitle": "Winona County sheriff",
+      "electN": 1,
+      "sosOfficeMatch": "County Sheriff",
+      "candidates": [
+        {
+          "sosName": "John Hazelton",
+          "displayName": "John Hazelton"
+        },
+        {
+          "sosName": "Charles Rolbiecki",
+          "displayName": "Charles Rolbiecki"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Sheriff",
+        "district": null,
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "John Hazelton",
+          "Charles Rolbiecki"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-county-attorney",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "County Attorney",
+      "displayTitle": "Winona County attorney",
+      "electN": 1,
+      "sosOfficeMatch": "County Attorney",
+      "candidates": [
+        {
+          "sosName": "Rebecca Church",
+          "displayName": "Rebecca Church"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "County Attorney",
+        "district": null,
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Rebecca Church"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-soil-and-water-supervisor-district-1",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "Soil and Water Supervisor District 1",
+      "displayTitle": "Soil and Water Conservation District supervisor, District 1",
+      "electN": 1,
+      "sosOfficeMatch": "Soil and Water Supervisor District 1",
+      "candidates": [
+        {
+          "sosName": "Ross L. Greden",
+          "displayName": "Ross L. Greden"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "Soil and Water Supervisor District 1",
+        "district": null,
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Ross L. Greden"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-county-soil-and-water-supervisor-district-4",
+      "category": "county",
+      "jurisdiction": "Winona County",
+      "office": "Soil and Water Supervisor District 4",
+      "displayTitle": "Soil and Water Conservation District supervisor, District 4",
+      "electN": 1,
+      "sosOfficeMatch": "Soil and Water Supervisor District 4",
+      "candidates": [
+        {
+          "sosName": "Tom Scarponcini",
+          "displayName": "Tom Scarponcini"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "county",
+        "file": "cntyRaces.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt",
+        "officeId": null,
+        "officeName": "Soil and Water Supervisor District 4",
+        "district": null,
+        "countyId": "85",
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Tom Scarponcini"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "altura-mayor-altura",
+      "category": "city",
+      "jurisdiction": "Altura",
+      "office": "Mayor (Altura)",
+      "displayTitle": "Altura mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Altura)",
+      "candidates": [],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Altura)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "altura-council-member-altura-elect-2",
+      "category": "city",
+      "jurisdiction": "Altura",
+      "office": "Council Member (Altura) (Elect 2)",
+      "displayTitle": "Altura council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Altura) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Luke Herber",
+          "displayName": "Luke Herber"
+        },
+        {
+          "sosName": "Andy VanLoon",
+          "displayName": "Andy VanLoon"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Altura) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Luke Herber",
+          "Andy VanLoon"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "dakota-mayor-dakota",
+      "category": "city",
+      "jurisdiction": "Dakota",
+      "office": "Mayor (Dakota)",
+      "displayTitle": "Dakota mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Dakota)",
+      "candidates": [
+        {
+          "sosName": "Gregg Mitchell",
+          "displayName": "Gregg Mitchell"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Dakota)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Gregg Mitchell"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "dakota-council-member-dakota",
+      "category": "city",
+      "jurisdiction": "Dakota",
+      "office": "Council Member (Dakota)",
+      "displayTitle": "Dakota council member",
+      "electN": 1,
+      "sosOfficeMatch": "Council Member (Dakota)",
+      "candidates": [
+        {
+          "sosName": "Chuck Hansen",
+          "displayName": "Chuck Hansen"
+        },
+        {
+          "sosName": "Angela Paul",
+          "displayName": "Angela Paul"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Dakota)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Chuck Hansen",
+          "Angela Paul"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "elba-mayor-elba",
+      "category": "city",
+      "jurisdiction": "Elba",
+      "office": "Mayor (Elba)",
+      "displayTitle": "Elba mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Elba)",
+      "candidates": [
+        {
+          "sosName": "Cody Rollinger",
+          "displayName": "Cody Rollinger"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Elba)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Cody Rollinger"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "elba-council-member-elba",
+      "category": "city",
+      "jurisdiction": "Elba",
+      "office": "Council Member (Elba)",
+      "displayTitle": "Elba council member",
+      "electN": 1,
+      "sosOfficeMatch": "Council Member (Elba)",
+      "candidates": [
+        {
+          "sosName": "Chris Heim",
+          "displayName": "Chris Heim"
+        },
+        {
+          "sosName": "Beth Kieffer",
+          "displayName": "Beth Kieffer"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Elba)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Chris Heim",
+          "Beth Kieffer"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "elba-city-treasurer-elba",
+      "category": "city",
+      "jurisdiction": "Elba",
+      "office": "City Treasurer (Elba)",
+      "displayTitle": "Elba city treasurer",
+      "electN": 1,
+      "sosOfficeMatch": "City Treasurer (Elba)",
+      "candidates": [
+        {
+          "sosName": "Kirsten Heim",
+          "displayName": "Kirsten Heim"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "City Treasurer (Elba)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Kirsten Heim"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "goodview-mayor-goodview",
+      "category": "city",
+      "jurisdiction": "Goodview",
+      "office": "Mayor (Goodview)",
+      "displayTitle": "Goodview mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Goodview)",
+      "candidates": [
+        {
+          "sosName": "Ben Klinger",
+          "displayName": "Ben Klinger"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Goodview)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Ben Klinger"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "goodview-council-member-goodview-elect-2",
+      "category": "city",
+      "jurisdiction": "Goodview",
+      "office": "Council Member (Goodview) (Elect 2)",
+      "displayTitle": "Goodview council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Goodview) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Brandon Buysman",
+          "displayName": "Brandon Buysman"
+        },
+        {
+          "sosName": "Richard (Dick) Ledebuhr",
+          "displayName": "Richard \"Dick\" Ledebuhr"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Goodview) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Brandon Buysman",
+          "Richard (Dick) Ledebuhr"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "la-crescent-mayor-la-crescent",
+      "category": "city",
+      "jurisdiction": "La Crescent",
+      "office": "Mayor (La Crescent)",
+      "displayTitle": "La Crescent mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (La Crescent)",
+      "candidates": [
+        {
+          "sosName": "April Carlson",
+          "displayName": "April Carlson"
+        },
+        {
+          "sosName": "Mikel Poellinger",
+          "displayName": "Mikel Poellinger"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (La Crescent)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "April Carlson",
+          "Mikel Poellinger"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "la-crescent-council-member-la-crescent-elect-2",
+      "category": "city",
+      "jurisdiction": "La Crescent",
+      "office": "Council Member (La Crescent) (Elect 2)",
+      "displayTitle": "La Crescent council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (La Crescent) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Steve Bissen",
+          "displayName": "Steve Bissen"
+        },
+        {
+          "sosName": "Nathan Delarwelle",
+          "displayName": "Nathan Delarwelle"
+        },
+        {
+          "sosName": "Ryan Hanifl",
+          "displayName": "Ryan Hanifl"
+        },
+        {
+          "sosName": "Steve Jansen",
+          "displayName": "Steve Jansen"
+        },
+        {
+          "sosName": "Teresa O'Donnell-Ebner",
+          "displayName": "Teresa O'Donnell-Ebner"
+        },
+        {
+          "sosName": "Adam Peterson",
+          "displayName": "Adam Peterson"
+        },
+        {
+          "sosName": "Joel Schmit",
+          "displayName": "Joel Schmit"
+        },
+        {
+          "sosName": "Chris Welnetz",
+          "displayName": "Chris Welnetz"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (La Crescent) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Steve Bissen",
+          "Nathan Delarwelle",
+          "Ryan Hanifl",
+          "Steve Jansen",
+          "Teresa O'Donnell-Ebner",
+          "Adam Peterson",
+          "Joel Schmit",
+          "Chris Welnetz"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "lewiston-mayor-lewiston",
+      "category": "city",
+      "jurisdiction": "Lewiston",
+      "office": "Mayor (Lewiston)",
+      "displayTitle": "Lewiston mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Lewiston)",
+      "candidates": [
+        {
+          "sosName": "Beth Carlson",
+          "displayName": "Beth Carlson",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Lewiston)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Beth Carlson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "lewiston-council-member-lewiston-elect-2",
+      "category": "city",
+      "jurisdiction": "Lewiston",
+      "office": "Council Member (Lewiston) (Elect 2)",
+      "displayTitle": "Lewiston council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Lewiston) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Chad Eggert",
+          "displayName": "Chad Eggert",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Lewiston) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Chad Eggert"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "lewiston-special-election-for-council-member-lewiston",
+      "category": "city",
+      "jurisdiction": "Lewiston",
+      "office": "Special Election for Council Member (Lewiston)",
+      "displayTitle": "Lewiston special election for council member",
+      "electN": 1,
+      "sosOfficeMatch": "Special Election for Council Member (Lewiston)",
+      "candidates": [
+        {
+          "sosName": "John Peterson",
+          "displayName": "John Peterson",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Special Election for Council Member (Lewiston)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "John Peterson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minneiska-mayor-minneiska",
+      "category": "city",
+      "jurisdiction": "Minneiska",
+      "office": "Mayor (Minneiska)",
+      "displayTitle": "Minneiska mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Minneiska)",
+      "candidates": [
+        {
+          "sosName": "Mark Tibor",
+          "displayName": "Mark Tibor",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Minneiska)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Mark Tibor"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minneiska-council-member-minneiska-elect-2",
+      "category": "city",
+      "jurisdiction": "Minneiska",
+      "office": "Council Member (Minneiska) (Elect 2)",
+      "displayTitle": "Minneiska council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Minneiska) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Andy Ehlo",
+          "displayName": "Andy Ehlo"
+        },
+        {
+          "sosName": "Suzanne Ehlo",
+          "displayName": "Suzanne Ehlo",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Minneiska) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Andy Ehlo",
+          "Suzanne Ehlo"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-city-mayor-minnesota-city",
+      "category": "city",
+      "jurisdiction": "Minnesota City",
+      "office": "Mayor (Minnesota City)",
+      "displayTitle": "Minnesota City mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Minnesota City)",
+      "candidates": [
+        {
+          "sosName": "Kelvin Penrod",
+          "displayName": "Kelvin Penrod",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Minnesota City)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Kelvin Penrod"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-city-council-member-minnesota-city-elect-2",
+      "category": "city",
+      "jurisdiction": "Minnesota City",
+      "office": "Council Member (Minnesota City) (Elect 2)",
+      "displayTitle": "Minnesota City council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Minnesota City) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Angie Bohnstengel",
+          "displayName": "Angie Bohnstengel",
+          "incumbent": true
+        },
+        {
+          "sosName": "Emily Conners",
+          "displayName": "Emily Conners",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Minnesota City) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Angie Bohnstengel",
+          "Emily Conners"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "rollingstone-mayor-rollingstone",
+      "category": "city",
+      "jurisdiction": "Rollingstone",
+      "office": "Mayor (Rollingstone)",
+      "displayTitle": "Rollingstone mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Rollingstone)",
+      "candidates": [
+        {
+          "sosName": "Paul Kreidermacher",
+          "displayName": "Paul Kreidermacher",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Rollingstone)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Paul Kreidermacher"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "rollingstone-council-member-rollingstone-elect-2",
+      "category": "city",
+      "jurisdiction": "Rollingstone",
+      "office": "Council Member (Rollingstone) (Elect 2)",
+      "displayTitle": "Rollingstone council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Rollingstone) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Johnathon Gust",
+          "displayName": "Johnathon Gust"
+        },
+        {
+          "sosName": "Geri Lehnertz",
+          "displayName": "Geri Lehnertz"
+        },
+        {
+          "sosName": "Alexander Moudry",
+          "displayName": "Alexander Moudry"
+        },
+        {
+          "sosName": "Zachary Speltz",
+          "displayName": "Zachary Speltz"
+        },
+        {
+          "sosName": "Randall Sullivan",
+          "displayName": "Randall Sullivan",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Rollingstone) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Johnathon Gust",
+          "Geri Lehnertz",
+          "Alexander Moudry",
+          "Zachary Speltz",
+          "Randall Sullivan"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "st-charles-mayor-st-charles",
+      "category": "city",
+      "jurisdiction": "St. Charles",
+      "office": "Mayor (St. Charles)",
+      "displayTitle": "St. Charles mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (St. Charles)",
+      "candidates": [
+        {
+          "sosName": "John Schaber",
+          "displayName": "John Schaber",
+          "incumbent": true
+        },
+        {
+          "sosName": "Mitchell Walch",
+          "displayName": "Mitchell Walch"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (St. Charles)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "John Schaber",
+          "Mitchell Walch"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "st-charles-council-member-st-charles-elect-2",
+      "category": "city",
+      "jurisdiction": "St. Charles",
+      "office": "Council Member (St. Charles) (Elect 2)",
+      "displayTitle": "St. Charles council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (St. Charles) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "David Braun",
+          "displayName": "David Braun",
+          "incumbent": true
+        },
+        {
+          "sosName": "David Kramer",
+          "displayName": "David Kramer",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (St. Charles) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "David Braun",
+          "David Kramer"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "stockton-mayor-stockton",
+      "category": "city",
+      "jurisdiction": "Stockton",
+      "office": "Mayor (Stockton)",
+      "displayTitle": "Stockton mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Stockton)",
+      "candidates": [
+        {
+          "sosName": "David Johannes",
+          "displayName": "David Johannes",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Stockton)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "David Johannes"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "stockton-council-member-stockton",
+      "category": "city",
+      "jurisdiction": "Stockton",
+      "office": "Council Member (Stockton) (Elect 2)",
+      "displayTitle": "Stockton council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Stockton) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Julia Giebel",
+          "displayName": "Julia Giebel",
+          "incumbent": true
+        },
+        {
+          "sosName": "Brian Koetz",
+          "displayName": "Brian Koetz",
+          "incumbent": true
+        },
+        {
+          "sosName": "Corey Schell",
+          "displayName": "Corey Schell"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Stockton) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Julia Giebel",
+          "Brian Koetz",
+          "Corey Schell"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "utica-mayor-utica",
+      "category": "city",
+      "jurisdiction": "Utica",
+      "office": "Mayor (Utica)",
+      "displayTitle": "Utica mayor",
+      "electN": 1,
+      "sosOfficeMatch": "Mayor (Utica)",
+      "candidates": [
+        {
+          "sosName": "Chad Dailey",
+          "displayName": "Chad Dailey"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Mayor (Utica)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Chad Dailey"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "utica-council-member-utica-elect-2",
+      "category": "city",
+      "jurisdiction": "Utica",
+      "office": "Council Member (Utica) (Elect 2)",
+      "displayTitle": "Utica council member",
+      "electN": 2,
+      "sosOfficeMatch": "Council Member (Utica) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Alanna Kieffer",
+          "displayName": "Alanna Kieffer"
+        },
+        {
+          "sosName": "Dan Lewis",
+          "displayName": "Dan Lewis"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member (Utica) (Elect 2)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Alanna Kieffer",
+          "Dan Lewis"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-council-member-at-large-winona",
+      "category": "city",
+      "jurisdiction": "Winona",
+      "office": "Council Member At Large (Winona)",
+      "displayTitle": "Winona City Council, at large",
+      "electN": 1,
+      "sosOfficeMatch": "Council Member At Large (Winona)",
+      "candidates": [
+        {
+          "sosName": "Jerome Christenson",
+          "displayName": "Jerome Christenson",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member At Large (Winona)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Jerome Christenson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-council-member-ward-2-winona",
+      "category": "city",
+      "jurisdiction": "Winona",
+      "office": "Council Member Ward 2 (Winona)",
+      "displayTitle": "Winona City Council, Ward 2",
+      "electN": 1,
+      "sosOfficeMatch": "Council Member Ward 2 (Winona)",
+      "candidates": [
+        {
+          "sosName": "Autumn Leigh Cole",
+          "displayName": "Autumn Leigh Cole"
+        },
+        {
+          "sosName": "Jeff Hyma",
+          "displayName": "Jeff Hyma",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member Ward 2 (Winona)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Autumn Leigh Cole",
+          "Jeff Hyma"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "winona-council-member-ward-4-winona",
+      "category": "city",
+      "jurisdiction": "Winona",
+      "office": "Council Member Ward 4 (Winona)",
+      "displayTitle": "Winona City Council, Ward 4",
+      "electN": 1,
+      "sosOfficeMatch": "Council Member Ward 4 (Winona)",
+      "candidates": [
+        {
+          "sosName": "Raelynn Peter",
+          "displayName": "Raelynn Peter"
+        },
+        {
+          "sosName": "Sarah Phan-Budd",
+          "displayName": "Sarah Phan-Budd"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Council Member Ward 4 (Winona)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Raelynn Peter",
+          "Sarah Phan-Budd"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "dresbach-township-town-supervisor-seat-a",
+      "category": "township",
+      "jurisdiction": "Dresbach Township",
+      "office": "Town Supervisor Seat A",
+      "displayTitle": "Dresbach Township supervisor, Seat A",
+      "electN": 1,
+      "sosOfficeMatch": "Town Supervisor Seat A",
+      "candidates": [
+        {
+          "sosName": "Michael Onstad",
+          "displayName": "Michael Onstad"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Supervisor Seat A (Dresbach Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Michael Onstad"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "dresbach-township-town-supervisor-seat-c",
+      "category": "township",
+      "jurisdiction": "Dresbach Township",
+      "office": "Town Supervisor Seat C",
+      "displayTitle": "Dresbach Township supervisor, Seat C",
+      "electN": 1,
+      "sosOfficeMatch": "Town Supervisor Seat C",
+      "candidates": [
+        {
+          "sosName": "Steven E. Hedberg",
+          "displayName": "Steven E. Hedberg"
+        },
+        {
+          "sosName": "Andrew Hughes",
+          "displayName": "Andrew Hughes"
+        },
+        {
+          "sosName": "Paul Shimshak",
+          "displayName": "Paul Shimshak"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Supervisor Seat C (Dresbach Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Steven E. Hedberg",
+          "Andrew Hughes",
+          "Paul Shimshak"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "mount-vernon-township-town-supervisor-seat-c",
+      "category": "township",
+      "jurisdiction": "Mount Vernon Township",
+      "office": "Town Supervisor Seat C",
+      "displayTitle": "Mount Vernon Township supervisor, Seat C",
+      "electN": 1,
+      "sosOfficeMatch": "Town Supervisor Seat C",
+      "candidates": [
+        {
+          "sosName": "Keith Speltz",
+          "displayName": "Keith Speltz"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Supervisor Seat C (Mount Vernon Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Keith Speltz"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "saratoga-township-town-supervisor-seat-a",
+      "category": "township",
+      "jurisdiction": "Saratoga Township",
+      "office": "Town Supervisor Seat A",
+      "displayTitle": "Saratoga Township supervisor, Seat A",
+      "electN": 1,
+      "sosOfficeMatch": "Town Supervisor Seat A",
+      "candidates": [
+        {
+          "sosName": "Tom Campbell",
+          "displayName": "Tom Campbell"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Supervisor Seat A (Saratoga Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Tom Campbell"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "saratoga-township-town-clerk",
+      "category": "township",
+      "jurisdiction": "Saratoga Township",
+      "office": "Town Clerk",
+      "displayTitle": "Saratoga Township clerk",
+      "electN": 1,
+      "sosOfficeMatch": "Town Clerk",
+      "candidates": [
+        {
+          "sosName": "Kelly Shank",
+          "displayName": "Kelly Shank"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Clerk (Saratoga Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Kelly Shank"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "whitewater-township-town-supervisor-seat-a",
+      "category": "township",
+      "jurisdiction": "Whitewater Township",
+      "office": "Town Supervisor Seat A",
+      "displayTitle": "Whitewater Township supervisor, Seat A",
+      "electN": 1,
+      "sosOfficeMatch": "Town Supervisor Seat A",
+      "candidates": [
+        {
+          "sosName": "Dwain Hassig",
+          "displayName": "Dwain Hassig"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Supervisor Seat A (Whitewater Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Dwain Hassig"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "whitewater-township-town-supervisor-seat-c",
+      "category": "township",
+      "jurisdiction": "Whitewater Township",
+      "office": "Town Supervisor Seat C",
+      "displayTitle": "Whitewater Township supervisor, Seat C",
+      "electN": 1,
+      "sosOfficeMatch": "Town Supervisor Seat C",
+      "candidates": [
+        {
+          "sosName": "Richard Young",
+          "displayName": "Richard Young"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Supervisor Seat C (Whitewater Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Richard Young"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "whitewater-township-town-clerk",
+      "category": "township",
+      "jurisdiction": "Whitewater Township",
+      "office": "Town Clerk",
+      "displayTitle": "Whitewater Township clerk",
+      "electN": 1,
+      "sosOfficeMatch": "Town Clerk",
+      "candidates": [
+        {
+          "sosName": "Eric Hanlon",
+          "displayName": "Eric Hanlon"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "local",
+        "file": "local.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt",
+        "officeId": null,
+        "officeName": "Town Clerk (Whitewater Township)",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Eric Hanlon"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-227-school-board-member-isd-227-elect-3",
+      "category": "school",
+      "jurisdiction": "ISD 227",
+      "office": "School Board Member (ISD #227) (Elect 3)",
+      "displayTitle": "Chatfield School Board",
+      "electN": 3,
+      "sosOfficeMatch": "School Board Member (ISD #227) (Elect 3)",
+      "candidates": [
+        {
+          "sosName": "Jeremiah Halloran",
+          "displayName": "Jeremiah Halloran"
+        },
+        {
+          "sosName": "Danielle Hoffman",
+          "displayName": "Danielle Hoffman"
+        },
+        {
+          "sosName": "Mark Johnsrud",
+          "displayName": "Mark Johnsrud"
+        },
+        {
+          "sosName": "David Sovinski",
+          "displayName": "David Sovinski"
+        },
+        {
+          "sosName": "Josh Thompson",
+          "displayName": "Josh Thompson"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member (ISD #227) (Elect 3)",
+        "district": "227",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Jeremiah Halloran",
+          "Danielle Hoffman",
+          "Mark Johnsrud",
+          "David Sovinski",
+          "Josh Thompson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-239-school-board-member-at-large-isd-239-elect-3",
+      "category": "school",
+      "jurisdiction": "ISD 239",
+      "office": "School Board Member At Large (ISD #239) (Elect 3)",
+      "displayTitle": "Rushford-Peterson School Board, at large",
+      "electN": 3,
+      "sosOfficeMatch": "School Board Member At Large (ISD #239) (Elect 3)",
+      "candidates": [
+        {
+          "sosName": "Brett Kues",
+          "displayName": "Brett Kues"
+        },
+        {
+          "sosName": "Jeff Michel",
+          "displayName": "Jeff Michel"
+        },
+        {
+          "sosName": "Carl Schollmeier",
+          "displayName": "Carl Schollmeier"
+        },
+        {
+          "sosName": "Nancy Snyder",
+          "displayName": "Nancy Snyder"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member At Large (ISD #239) (Elect 3)",
+        "district": "239",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Brett Kues",
+          "Jeff Michel",
+          "Carl Schollmeier",
+          "Nancy Snyder"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-294-school-board-member-isd-294-elect-4",
+      "category": "school",
+      "jurisdiction": "ISD 294",
+      "office": "School Board Member (ISD #294) (Elect 4)",
+      "displayTitle": "Houston School Board",
+      "electN": 4,
+      "sosOfficeMatch": "School Board Member (ISD #294) (Elect 4)",
+      "candidates": [
+        {
+          "sosName": "Michael Boldt",
+          "displayName": "Michael Boldt"
+        },
+        {
+          "sosName": "Thomas (T.J.) Frey",
+          "displayName": "Thomas \"T.J.\" Frey"
+        },
+        {
+          "sosName": "Nicole Johnson",
+          "displayName": "Nicole Johnson"
+        },
+        {
+          "sosName": "Sara Laufenberg",
+          "displayName": "Sara Laufenberg"
+        },
+        {
+          "sosName": "Lisa Schultz",
+          "displayName": "Lisa Schultz"
+        },
+        {
+          "sosName": "Valerie Traun",
+          "displayName": "Valerie Traun"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member (ISD #294) (Elect 4)",
+        "district": "294",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Michael Boldt",
+          "Thomas (T.J.) Frey",
+          "Nicole Johnson",
+          "Sara Laufenberg",
+          "Lisa Schultz",
+          "Valerie Traun"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-300-school-board-member-isd-300-elect-3",
+      "category": "school",
+      "jurisdiction": "ISD 300",
+      "office": "School Board Member (ISD #300) (Elect 3)",
+      "displayTitle": "La Crescent-Hokah School Board",
+      "electN": 3,
+      "sosOfficeMatch": "School Board Member (ISD #300) (Elect 3)",
+      "candidates": [
+        {
+          "sosName": "Darcey Cody",
+          "displayName": "Darcey Cody"
+        },
+        {
+          "sosName": "Gary Kuphal",
+          "displayName": "Gary Kuphal"
+        },
+        {
+          "sosName": "Nicole Lee Miller",
+          "displayName": "Nicole Lee Miller"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member (ISD #300) (Elect 3)",
+        "district": "300",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Darcey Cody",
+          "Gary Kuphal",
+          "Nicole Lee Miller"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-857-school-board-member-isd-857-elect-3",
+      "category": "school",
+      "jurisdiction": "ISD 857",
+      "office": "School Board Member (ISD #857) (Elect 3)",
+      "displayTitle": "Lewiston-Altura School Board",
+      "electN": 3,
+      "sosOfficeMatch": "School Board Member (ISD #857) (Elect 3)",
+      "candidates": [
+        {
+          "sosName": "David J. Baer",
+          "displayName": "David J. Baer"
+        },
+        {
+          "sosName": "Sara Daley",
+          "displayName": "Sara Daley"
+        },
+        {
+          "sosName": "Daniel Kreidermacher",
+          "displayName": "Daniel Kreidermacher"
+        },
+        {
+          "sosName": "Christine Peterson",
+          "displayName": "Christine Peterson"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member (ISD #857) (Elect 3)",
+        "district": "857",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "David J. Baer",
+          "Sara Daley",
+          "Daniel Kreidermacher",
+          "Christine Peterson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-858-school-board-member-isd-858-elect-4",
+      "category": "school",
+      "jurisdiction": "ISD 858",
+      "office": "School Board Member (ISD #858) (Elect 4)",
+      "displayTitle": "St. Charles School Board",
+      "electN": 4,
+      "sosOfficeMatch": "School Board Member (ISD #858) (Elect 4)",
+      "candidates": [
+        {
+          "sosName": "Brian Bloom",
+          "displayName": "Brian Bloom"
+        },
+        {
+          "sosName": "Molly A Greden",
+          "displayName": "Molly A. Greden"
+        },
+        {
+          "sosName": "Travis Lange",
+          "displayName": "Travis Lange"
+        },
+        {
+          "sosName": "Eric Manley",
+          "displayName": "Eric Manley"
+        },
+        {
+          "sosName": "Trevor Moore",
+          "displayName": "Trevor Moore"
+        },
+        {
+          "sosName": "Elizabeth Peitzman",
+          "displayName": "Elizabeth Peitzman"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member (ISD #858) (Elect 4)",
+        "district": "858",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Brian Bloom",
+          "Molly A Greden",
+          "Travis Lange",
+          "Eric Manley",
+          "Trevor Moore",
+          "Elizabeth Peitzman"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-861-school-board-member-at-large-isd-861-elect-2",
+      "category": "school",
+      "jurisdiction": "ISD 861",
+      "office": "School Board Member At Large (ISD #861) (Elect 2)",
+      "displayTitle": "Winona Area Public Schools board, at large",
+      "electN": 2,
+      "sosOfficeMatch": "School Board Member At Large (ISD #861) (Elect 2)",
+      "candidates": [
+        {
+          "sosName": "Nancy Denzer",
+          "displayName": "Nancy Denzer",
+          "incumbent": true
+        },
+        {
+          "sosName": "Karl W Sonneman",
+          "displayName": "Karl W. Sonneman",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member At Large (ISD #861) (Elect 2)",
+        "district": "861",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Nancy Denzer",
+          "Karl W Sonneman"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-861-school-board-member-district-1-isd-861",
+      "category": "school",
+      "jurisdiction": "ISD 861",
+      "office": "School Board Member District 1 (ISD #861)",
+      "displayTitle": "Winona Area Public Schools board, District 1",
+      "electN": 1,
+      "sosOfficeMatch": "School Board Member District 1 (ISD #861)",
+      "candidates": [
+        {
+          "sosName": "Michelle Cochran",
+          "displayName": "Michelle Cochran"
+        },
+        {
+          "sosName": "Ted Hazelton",
+          "displayName": "Ted Hazelton"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member District 1 (ISD #861)",
+        "district": "861",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Michelle Cochran",
+          "Ted Hazelton"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-861-school-board-member-district-2-isd-861",
+      "category": "school",
+      "jurisdiction": "ISD 861",
+      "office": "School Board Member District 2 (ISD #861)",
+      "displayTitle": "Winona Area Public Schools board, District 2",
+      "electN": 1,
+      "sosOfficeMatch": "School Board Member District 2 (ISD #861)",
+      "candidates": [
+        {
+          "sosName": "Michael Hanratty",
+          "displayName": "Michael Hanratty",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member District 2 (ISD #861)",
+        "district": "861",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Michael Hanratty"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-2899-school-board-member-isd-2899-elect-4",
+      "category": "school",
+      "jurisdiction": "ISD 2899",
+      "office": "School Board Member (ISD #2899) (Elect 4)",
+      "displayTitle": "Plainview-Elgin-Millville School Board",
+      "electN": 4,
+      "sosOfficeMatch": "School Board Member (ISD #2899) (Elect 4)",
+      "candidates": [
+        {
+          "sosName": "Brian Durgin",
+          "displayName": "Brian Durgin"
+        },
+        {
+          "sosName": "Julie Hart",
+          "displayName": "Julie Hart"
+        },
+        {
+          "sosName": "Tonya Hulberg",
+          "displayName": "Tonya Hulberg"
+        },
+        {
+          "sosName": "Nick Kedrowski",
+          "displayName": "Nick Kedrowski"
+        },
+        {
+          "sosName": "Theresa \"Tina\" Keilholtz",
+          "displayName": "Theresa \"Tina\" Keilholtz"
+        },
+        {
+          "sosName": "Logan Kolb",
+          "displayName": "Logan Kolb"
+        },
+        {
+          "sosName": "Jeff Kruger",
+          "displayName": "Jeff Kruger"
+        },
+        {
+          "sosName": "Roger Rahman",
+          "displayName": "Roger Rahman"
+        },
+        {
+          "sosName": "Heidi Schumacher",
+          "displayName": "Heidi Schumacher"
+        },
+        {
+          "sosName": "Ronald Springer",
+          "displayName": "Ronald Springer"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "School Board Member (ISD #2899) (Elect 4)",
+        "district": "2899",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Brian Durgin",
+          "Julie Hart",
+          "Tonya Hulberg",
+          "Nick Kedrowski",
+          "Theresa \"Tina\" Keilholtz",
+          "Logan Kolb",
+          "Jeff Kruger",
+          "Roger Rahman",
+          "Heidi Schumacher",
+          "Ronald Springer"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-2899-special-election-for-school-board-member-isd-2899",
+      "category": "school",
+      "jurisdiction": "ISD 2899",
+      "office": "Special Election for School Board Member (ISD #2899)",
+      "displayTitle": "Plainview-Elgin-Millville School Board special election",
+      "electN": 1,
+      "sosOfficeMatch": "Special Election for School Board Member (ISD #2899)",
+      "candidates": [
+        {
+          "sosName": "Sue Tangen",
+          "displayName": "Sue Tangen"
+        },
+        {
+          "sosName": "Marilyn Wozney",
+          "displayName": "Marilyn Wozney"
+        }
+      ],
+      "sosResults": {
+        "feedKey": "schoolBoard",
+        "file": "sdrace.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt",
+        "officeId": null,
+        "officeName": "Special Election for School Board Member (ISD #2899)",
+        "district": "2899",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [
+          "Sue Tangen",
+          "Marilyn Wozney"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-associate-justice-supreme-court-1",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Associate Justice - Supreme Court 1",
+      "displayTitle": "Minnesota Supreme Court, Seat 1",
+      "electN": 1,
+      "sosOfficeMatch": "Associate Justice - Supreme Court 1",
+      "candidates": [
+        {
+          "sosName": "Sarah Hennesy",
+          "displayName": "Sarah Hennesy",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7002",
+        "officeName": "Associate Justice - Supreme Court 1",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Sarah Hennesy"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-associate-justice-supreme-court-4",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Associate Justice - Supreme Court 4",
+      "displayTitle": "Minnesota Supreme Court, Seat 4",
+      "electN": 1,
+      "sosOfficeMatch": "Associate Justice - Supreme Court 4",
+      "candidates": [
+        {
+          "sosName": "Paul Thissen",
+          "displayName": "Paul Thissen",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7005",
+        "officeName": "Associate Justice - Supreme Court 4",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Paul Thissen"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-court-of-appeals-1",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - Court of Appeals 1",
+      "displayTitle": "Minnesota Court of Appeals, Seat 1",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - Court of Appeals 1",
+      "candidates": [
+        {
+          "sosName": "Elizabeth Bentley",
+          "displayName": "Elizabeth Bentley",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7010",
+        "officeName": "Judge - Court of Appeals 1",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Elizabeth Bentley"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-court-of-appeals-7",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - Court of Appeals 7",
+      "displayTitle": "Minnesota Court of Appeals, Seat 7",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - Court of Appeals 7",
+      "candidates": [
+        {
+          "sosName": "Rachel Bond",
+          "displayName": "Rachel Bond",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7016",
+        "officeName": "Judge - Court of Appeals 7",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Rachel Bond"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-court-of-appeals-13",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - Court of Appeals 13",
+      "displayTitle": "Minnesota Court of Appeals, Seat 13",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - Court of Appeals 13",
+      "candidates": [
+        {
+          "sosName": "Jeanne Cochran",
+          "displayName": "Jeanne Cochran",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7022",
+        "officeName": "Judge - Court of Appeals 13",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Jeanne Cochran"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-court-of-appeals-15",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - Court of Appeals 15",
+      "displayTitle": "Minnesota Court of Appeals, Seat 15",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - Court of Appeals 15",
+      "candidates": [
+        {
+          "sosName": "Kevin G. Ross",
+          "displayName": "Kevin G. Ross",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7024",
+        "officeName": "Judge - Court of Appeals 15",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Kevin G. Ross"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-court-of-appeals-18",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - Court of Appeals 18",
+      "displayTitle": "Minnesota Court of Appeals, Seat 18",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - Court of Appeals 18",
+      "candidates": [
+        {
+          "sosName": "JaPaul J. Harris",
+          "displayName": "JaPaul J. Harris",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialStatewide",
+        "file": "judicial.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt",
+        "officeId": "7027",
+        "officeName": "Judge - Court of Appeals 18",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "JaPaul J. Harris"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-3rd-district-court-4",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - 3rd District Court 4",
+      "displayTitle": "3rd District Court, Seat 4",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - 3rd District Court 4",
+      "candidates": [
+        {
+          "sosName": "Jacob C. Allen",
+          "displayName": "Jacob C. Allen",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialDistrict",
+        "file": "judicialdst.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt",
+        "officeId": "8403",
+        "officeName": "Judge - 3rd District Court 4",
+        "district": "03",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Jacob C. Allen"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-3rd-district-court-6",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - 3rd District Court 6",
+      "displayTitle": "3rd District Court, Seat 6",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - 3rd District Court 6",
+      "candidates": [
+        {
+          "sosName": "Karen R. Duncan",
+          "displayName": "Karen R. Duncan",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialDistrict",
+        "file": "judicialdst.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt",
+        "officeId": "8405",
+        "officeName": "Judge - 3rd District Court 6",
+        "district": "03",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Karen R. Duncan"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-3rd-district-court-7",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - 3rd District Court 7",
+      "displayTitle": "3rd District Court, Seat 7",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - 3rd District Court 7",
+      "candidates": [
+        {
+          "sosName": "Dwight Luhmann",
+          "displayName": "Dwight Luhmann",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialDistrict",
+        "file": "judicialdst.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt",
+        "officeId": "8406",
+        "officeName": "Judge - 3rd District Court 7",
+        "district": "03",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Dwight Luhmann"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-3rd-district-court-15",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - 3rd District Court 15",
+      "displayTitle": "3rd District Court, Seat 15",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - 3rd District Court 15",
+      "candidates": [
+        {
+          "sosName": "Erin Lindhart Felten",
+          "displayName": "Erin Lindhart Felten",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialDistrict",
+        "file": "judicialdst.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt",
+        "officeId": "8414",
+        "officeName": "Judge - 3rd District Court 15",
+        "district": "03",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Erin Lindhart Felten"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-3rd-district-court-17",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - 3rd District Court 17",
+      "displayTitle": "3rd District Court, Seat 17",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - 3rd District Court 17",
+      "candidates": [
+        {
+          "sosName": "Christopher A Neisen",
+          "displayName": "Christopher A Neisen",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialDistrict",
+        "file": "judicialdst.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt",
+        "officeId": "8416",
+        "officeName": "Judge - 3rd District Court 17",
+        "district": "03",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Christopher A Neisen"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-judge-3rd-district-court-22",
+      "category": "judiciary",
+      "jurisdiction": "Minnesota",
+      "office": "Judge - 3rd District Court 22",
+      "displayTitle": "3rd District Court, Seat 22",
+      "electN": 1,
+      "sosOfficeMatch": "Judge - 3rd District Court 22",
+      "candidates": [
+        {
+          "sosName": "Jeffrey M Johnson",
+          "displayName": "Jeffrey M Johnson",
+          "incumbent": true
+        }
+      ],
+      "sosResults": {
+        "feedKey": "judicialDistrict",
+        "file": "judicialdst.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt",
+        "officeId": "8421",
+        "officeName": "Judge - 3rd District Court 22",
+        "district": "03",
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [
+          "Jeffrey M Johnson"
+        ],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "minnesota-constitutional-amendment",
+      "category": "ballot_question",
+      "jurisdiction": "Minnesota",
+      "office": "Constitutional Amendment",
+      "displayTitle": "Constitutional amendment: Increasing funding to school districts",
+      "electN": 1,
+      "sosOfficeMatch": "Constitutional Amendment",
+      "question": "Increasing funding to school districts",
+      "fullQuestion": "Shall the Minnesota Constitution be amended to increase the funding going to all school districts from the permanent school fund, which is a fund that supports school districts without raising individual income or property taxes, effective July 1, 2027?",
+      "options": [
+        "YES",
+        "NO"
+      ],
+      "sosResults": {
+        "feedKey": "constitutionalAmendment",
+        "file": "ConstAmend.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/ConstAmend.txt",
+        "officeId": "0351",
+        "officeName": "Constitutional Amendment",
+        "district": null,
+        "countyId": null,
+        "matchStrategy": [
+          "officeId"
+        ],
+        "expectedCandidateNames": [],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-858-school-district-question-1",
+      "category": "ballot_question",
+      "jurisdiction": "ISD 858",
+      "office": "School District Question 1",
+      "displayTitle": "St. Charles Public Schools Question 1",
+      "electN": 1,
+      "sosOfficeMatch": "School District Question 1 (ISD #858)",
+      "question": "Approval of New School District Referendum Revenue Authorization",
+      "fullQuestion": "The board of Independent School District No. 858 (St. Charles Public Schools), Minnesota has proposed to increase the School District\'s referendum revenue by $650 per pupil, subject to an annual increase at the rate of inflation. The proposed new referendum revenue authorization would be first levied in 2026 for taxes payable in 2027 and applicable for ten (10) years unless otherwise revoked or reduced as provided by law. Shall the new referendum authorization proposed by the board of Independent School District No. 858 (St. Charles Public Schools), Minnesota, be approved? BY VOTING \"YES\" ON THIS BALLOT QUESTION, YOU ARE VOTING FOR A PROPERTY TAX INCREASE",
+      "options": [
+        "YES",
+        "NO"
+      ],
+      "sosResults": {
+        "feedKey": "schoolQuestions",
+        "file": "SDRaceQuestions.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/SDRaceQuestions.txt",
+        "officeId": null,
+        "officeName": "School District Question 1 (ISD #858)",
+        "district": "858",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [],
+        "includeWriteIns": true
+      }
+    },
+    {
+      "id": "isd-861-school-district-question-1",
+      "category": "ballot_question",
+      "jurisdiction": "ISD 861",
+      "office": "School District Question 1",
+      "displayTitle": "Winona Area Public Schools Question 1",
+      "electN": 1,
+      "sosOfficeMatch": "School District Question 1 (ISD #861)",
+      "question": "Renewal of Capital Project Levy Authorization for Technology",
+      "fullQuestion": "The board of Independent School District No. 861 (Winona Area Public Schools), Minnesota, has proposed to renew its capital project levy authorization, scheduled to expire after taxes payable in 2026, in the amount of 3.383% times the net tax capacity of the School District. The proposed tax rate is not being increased from the previous year\'s rate. The proposed renewal of the expiring capital project levy authorization will raise approximately $1,683,000 for taxes payable in 2027, the first year it is to be levied, and would be authorized for ten (10) years. The estimated total cost of the projects to be funded over that time period is approximately $16,830,000. The additional revenue from the proposed capital project levy authorization renewal will be used to fund technology, including technology equipment, software, systems, and services to support Career and Technical Education programs and instruction, technology systems related to safety and security, classroom and building technology, digital curriculum, support and maintenance of software, software licenses, computers, technology infrastructure and network improvements, device replacement, and to pay the costs of technology related personnel and training. Shall the capital project levy authorization renewal to fund technology proposed by the board of Independent School District No. 861 (Winona Area Public Schools), Minnesota, be approved? BY VOTING YES ON THIS BALLOT QUESTION, YOU ARE VOTING TO RENEW AN EXISTING CAPITAL PROJECTS REFERENDUM THAT IS SCHEDULED TO EXPIRE",
+      "options": [
+        "YES",
+        "NO"
+      ],
+      "sosResults": {
+        "feedKey": "schoolQuestions",
+        "file": "SDRaceQuestions.txt",
+        "url": "https://electionresultsfiles.sos.mn.gov/20261103/SDRaceQuestions.txt",
+        "officeId": null,
+        "officeName": "School District Question 1 (ISD #861)",
+        "district": "861",
+        "countyId": null,
+        "matchStrategy": [
+          "officeName",
+          "district",
+          "expectedCandidateNames"
+        ],
+        "expectedCandidateNames": [],
+        "includeWriteIns": true
+      }
+    }
+  ],
+  "sosFeeds": {
+    "usSenate": {
+      "label": "U.S. Senator Statewide",
+      "file": "ussenate.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/ussenate.txt"
+    },
+    "usHouse": {
+      "label": "U.S. Representative by Congressional District",
+      "file": "ushouse.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/ushouse.txt"
+    },
+    "governor": {
+      "label": "Governor Statewide",
+      "file": "Governor.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/Governor.txt"
+    },
+    "secretaryOfState": {
+      "label": "Secretary of State Statewide",
+      "file": "secofstate.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/secofstate.txt"
+    },
+    "stateAuditor": {
+      "label": "State Auditor Statewide",
+      "file": "auditor.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/auditor.txt"
+    },
+    "attorneyGeneral": {
+      "label": "Attorney General Statewide",
+      "file": "attorneygen.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/attorneygen.txt"
+    },
+    "constitutionalAmendment": {
+      "label": "Constitutional Amendment Statewide",
+      "file": "ConstAmend.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/ConstAmend.txt"
+    },
+    "stateSenate": {
+      "label": "State Senator by District",
+      "file": "stsenate.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/stsenate.txt"
+    },
+    "stateHouse": {
+      "label": "State Representative by District",
+      "file": "LegislativeByDistrict.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/LegislativeByDistrict.txt"
+    },
+    "judicialStatewide": {
+      "label": "Supreme Court and Courts of Appeals Races",
+      "file": "judicial.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicial.txt"
+    },
+    "judicialDistrict": {
+      "label": "District Court Races",
+      "file": "judicialdst.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/judicialdst.txt"
+    },
+    "county": {
+      "label": "County Races",
+      "file": "cntyRaces.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/cntyRaces.txt"
+    },
+    "local": {
+      "label": "Municipal and Hospital District Races and Questions",
+      "file": "local.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/local.txt"
+    },
+    "schoolBoard": {
+      "label": "School Board Races",
+      "file": "sdrace.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/sdrace.txt"
+    },
+    "schoolQuestions": {
+      "label": "School Board Races and Questions",
+      "file": "SDRaceQuestions.txt",
+      "url": "https://electionresultsfiles.sos.mn.gov/20261103/SDRaceQuestions.txt"
+    }
+  },
+  "sosResultSchema": [
+    "state",
+    "countyId",
+    "precinctName",
+    "officeId",
+    "officeName",
+    "district",
+    "candidateOrderCode",
+    "candidateName",
+    "suffix",
+    "incumbentCode",
+    "partyAbbreviation",
+    "precinctsReporting",
+    "totalPrecincts",
+    "votes",
+    "votePercent",
+    "totalOfficeVotes"
+  ],
+  "mappingNotes": {
+    "status": "working-runtime-map",
+    "officeIdPolicy": "Use exact officeId where verified from 2026 test-result files. Otherwise match on officeName/district/candidate set and capture the returned officeId at runtime.",
+    "preElectionCaution": "Minnesota SOS says supporting-file information is subject to correction and change until Election Day.",
+    "precinctFileCaution": "SOS says precinct-level result files will not be available until the morning after Election Day; this manifest uses summary-level feeds for election night."
+  }
+};
+
+</script>
+<script>
+/* Winona County 2026 election results parser
+ * Designed for Minnesota Secretary of State semicolon-delimited result files.
+ * Requires WINONA_ELECTION_MANIFEST_V2 from winona-election-race-manifest-v2.js
+ */
+(function (global) {
+  'use strict';
+
+  const DEFAULT_SCHEMA = [
+    'state','countyId','precinctName','officeId','officeName','district',
+    'candidateOrderCode','candidateName','suffix','incumbentCode','partyAbbreviation',
+    'precinctsReporting','totalPrecincts','votes','votePercent','totalOfficeVotes'
+  ];
+
+  function clean(value) {
+    return String(value == null ? '' : value).trim();
+  }
+
+  function norm(value) {
+    return clean(value)
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .replace(/[.,]/g, '')
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  }
+
+  function parseNumber(value) {
+    const n = Number(String(value == null ? '' : value).replace(/,/g, '').trim());
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function parseDelimited(text, schema) {
+    const fields = schema || DEFAULT_SCHEMA;
+    return String(text || '')
+      .replace(/^\uFEFF/, '')
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map((line, index) => {
+        const parts = line.split(';');
+        const row = { _line: index + 1, _raw: line };
+        fields.forEach((field, i) => { row[field] = clean(parts[i]); });
+        row.precinctsReportingNum = parseNumber(row.precinctsReporting);
+        row.totalPrecinctsNum = parseNumber(row.totalPrecincts);
+        row.votesNum = parseNumber(row.votes);
+        row.votePercentNum = parseNumber(row.votePercent);
+        row.totalOfficeVotesNum = parseNumber(row.totalOfficeVotes);
+        return row;
+      });
+  }
+
+  function officeKey(row) {
+    return [row.officeId, row.countyId, row.district, row.officeName].map(norm).join('|');
+  }
+
+  function groupRows(rows) {
+    const groups = new Map();
+    rows.forEach(row => {
+      const key = officeKey(row);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(row);
+    });
+    return Array.from(groups.values());
+  }
+
+  function candidateNorm(value) {
+    let raw = clean(value)
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .trim();
+
+    // Tolerate the common "Last, First Middle" form without broadly
+    // reordering names that are already presented in normal order.
+    const comma = raw.indexOf(',');
+    if (comma > 0) {
+      const last = raw.slice(0, comma).trim();
+      const rest = raw.slice(comma + 1).trim();
+      if (last && rest) raw = `${rest} ${last}`;
+    }
+    return norm(raw);
+  }
+
+  function candidateNamesMatch(a, b) {
+    const left = candidateNorm(a);
+    const right = candidateNorm(b);
+    if (!left || !right) return false;
+    if (left === right) return true;
+
+    const lt = left.split(/\s+/).filter(Boolean);
+    const rt = right.split(/\s+/).filter(Boolean);
+    if (lt.length < 2 || rt.length < 2) return false;
+    if (lt[0] !== rt[0] || lt[lt.length - 1] !== rt[rt.length - 1]) return false;
+
+    const lm = lt.slice(1, -1);
+    const rm = rt.slice(1, -1);
+
+    // Allow a single-letter middle initial to be present on one side and
+    // omitted on the other. Do not equate different middle initials.
+    if (!lm.length && rm.length && rm.every(t => /^[a-z]$/.test(t))) return true;
+    if (!rm.length && lm.length && lm.every(t => /^[a-z]$/.test(t))) return true;
+    return false;
+  }
+
+  function candidateList(group) {
+    return group
+      .map(r => clean(r.candidateName))
+      .filter(n => n && !/^write[- ]?in/i.test(n));
+  }
+
+  function expectedList(race) {
+    return (race.sosResults.expectedCandidateNames || (race.candidates || []).map(c => c.sosName))
+      .map(clean)
+      .filter(Boolean);
+  }
+
+  function setScore(expected, actual) {
+    if (!expected.length) return 0;
+    let hits = 0;
+    expected.forEach(x => {
+      if (actual.some(y => candidateNamesMatch(x, y))) hits += 1;
+    });
+    return hits / expected.length;
+  }
+
+  function contextCodeMatches(expected, actual) {
+    if (expected == null || expected === '') return true;
+    const e = clean(expected);
+    const a = clean(actual);
+    if (norm(e) === norm(a)) return true;
+    // SOS district/county codes may be zero-padded in some result files.
+    if (/^\d+$/.test(e) && /^\d+$/.test(a)) {
+      return Number(e) === Number(a);
+    }
+    return false;
+  }
+
+  function normalizeDistrictCode(value) {
+    if (value == null || value === '') return '';
+    let s = clean(value).toUpperCase();
+
+    // Tolerate common presentation variants without weakening district identity:
+    // 03 == 3, 020B == 20B, 20-B == 20B, 20 B == 20B.
+    s = s
+      .replace(/^DISTRICT\s*/i, '')
+      .replace(/^ISD\s*#?\s*/i, '')
+      .replace(/[^0-9A-Z]/g, '');
+
+    const m = s.match(/^0*(\d+)([A-Z]*)$/);
+    if (m) return String(Number(m[1])) + m[2];
+    return s;
+  }
+
+  function districtMatches(expected, actual) {
+    if (expected == null || expected === '') return true;
+    return normalizeDistrictCode(expected) === normalizeDistrictCode(actual);
+  }
+
+  function countyMatches(expected, actual) {
+    return contextCodeMatches(expected, actual);
+  }
+
+  function resolveRace(race, rows) {
+    const cfg = race.sosResults || {};
+    const groups = groupRows(rows);
+    const expected = expectedList(race);
+
+    let candidates = groups.map(group => {
+      const first = group[0] || {};
+      const score = setScore(expected, candidateList(group));
+      return { group, first, score };
+    });
+
+    if (cfg.officeId) {
+      const exact = candidates.filter(x => norm(x.first.officeId) === norm(cfg.officeId));
+      if (exact.length === 1) return resolution(race, exact[0], 'officeId');
+      if (exact.length > 1) {
+        const narrowed = exact.filter(x => districtMatches(cfg.district, x.first.district) && countyMatches(cfg.countyId, x.first.countyId));
+        if (narrowed.length === 1) return resolution(race, narrowed[0], 'officeId+context');
+        return ambiguous(race, narrowed.length ? narrowed : exact, 'duplicate officeId');
+      }
+    }
+
+    candidates = candidates.filter(x => {
+      const officeOk = !cfg.officeName || norm(x.first.officeName) === norm(cfg.officeName);
+      const districtOk = districtMatches(cfg.district, x.first.district);
+      const countyOk = countyMatches(cfg.countyId, x.first.countyId);
+      return officeOk && districtOk && countyOk;
+    });
+
+    if (candidates.length === 1 && expected.length === 0) {
+      return resolution(race, candidates[0], race.category === 'ballot_question' ? 'office+district+question' : 'office+district');
+    }
+
+    if (candidates.length === 1 && candidates[0].score >= 0.5) {
+      return resolution(race, candidates[0], 'office+district+candidateSet');
+    }
+
+    const strong = candidates.filter(x => x.score === 1);
+    if (strong.length === 1) return resolution(race, strong[0], 'candidateSet');
+    if (strong.length > 1) return ambiguous(race, strong, 'multiple exact candidate sets');
+
+    const partial = candidates.filter(x => x.score >= 0.5);
+    if (partial.length === 1) return resolution(race, partial[0], 'partialCandidateSet');
+    if (partial.length > 1) return ambiguous(race, partial, 'multiple partial candidate sets');
+
+    return {
+      raceId: race.id,
+      displayTitle: race.displayTitle,
+      status: 'unmatched',
+      reason: candidates.length ? 'candidate set mismatch' : 'no office/context match',
+      candidatesConsidered: candidates.length
+    };
+  }
+
+  function resolution(race, match, method) {
+    const first = match.first;
+    return {
+      raceId: race.id,
+      displayTitle: race.displayTitle,
+      status: 'resolved',
+      method,
+      officeId: first.officeId || null,
+      officeName: first.officeName || null,
+      district: first.district || null,
+      countyId: first.countyId || null,
+      candidateMatchScore: match.score,
+      rows: match.group
+    };
+  }
+
+  function ambiguous(race, matches, reason) {
+    return {
+      raceId: race.id,
+      displayTitle: race.displayTitle,
+      status: 'ambiguous',
+      reason,
+      matches: matches.map(x => ({
+        officeId: x.first.officeId || null,
+        officeName: x.first.officeName || null,
+        district: x.first.district || null,
+        countyId: x.first.countyId || null,
+        candidateMatchScore: x.score
+      }))
+    };
+  }
+
+  function formatCandidate(raceCandidate, resultRow) {
+    return {
+      name: raceCandidate.displayName || raceCandidate.sosName,
+      sosName: raceCandidate.sosName,
+      incumbent: raceCandidate.incumbent === true,
+      party: raceCandidate.party || resultRow?.partyAbbreviation || null,
+      votes: resultRow ? resultRow.votesNum : 0,
+      percent: resultRow ? resultRow.votePercentNum : 0
+    };
+  }
+
+  function buildViewModel(race, resolved) {
+    if (!resolved || resolved.status !== 'resolved') return null;
+    const findCandidateRow = name => resolved.rows.find(r => candidateNamesMatch(name, r.candidateName));
+    const byName = new Map(resolved.rows.map(r => [norm(r.candidateName), r]));
+    const configured = (race.candidates || []).map(c => formatCandidate(c, findCandidateRow(c.sosName)));
+    const writeInRows = resolved.rows.filter(r =>
+      clean(r.candidateOrderCode) === '9901' || /^write[- ]?in/.test(norm(r.candidateName))
+    );
+    const writeIns = writeInRows.length ? [{
+      name: 'Write-in',
+      sosName: 'WRITE-IN',
+      incumbent: false,
+      party: null,
+      votes: writeInRows.reduce((sum, r) => sum + (r.votesNum || 0), 0),
+      percent: writeInRows.reduce((sum, r) => sum + (r.votePercentNum || 0), 0)
+    }] : [];
+    const first = resolved.rows[0] || {};
+    return {
+      raceId: race.id,
+      title: race.displayTitle,
+      category: race.category,
+      jurisdiction: race.jurisdiction,
+      electN: race.electN || 1,
+      officeId: resolved.officeId,
+      precinctsReporting: first.precinctsReportingNum || 0,
+      totalPrecincts: first.totalPrecinctsNum || 0,
+      totalOfficeVotes: first.totalOfficeVotesNum || 0,
+      candidates: race.category === 'ballot_question'
+        ? (race.options || ['YES','NO']).map(name => {
+            const row = byName.get(norm(name));
+            return { name, sosName: name, incumbent: false, party: null, votes: row ? row.votesNum : 0, percent: row ? row.votePercentNum : 0 };
+          })
+        : configured.concat(writeIns)
+    };
+  }
+
+  async function fetchFeed(url, fetchImpl) {
+    const f = fetchImpl || global.fetch;
+    if (!f) throw new Error('fetch is unavailable');
+    const response = await f(url, { cache: 'no-store', credentials: 'omit' });
+    if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+    return response.text();
+  }
+
+  async function resolveManifest(manifest, fetchImpl) {
+    const feedCache = new Map();
+    const errors = [];
+    const results = [];
+    const schema = manifest.sosResultSchema || DEFAULT_SCHEMA;
+
+    async function rowsFor(race) {
+      const url = race.sosResults && race.sosResults.url;
+      if (!url) throw new Error(`No feed URL for ${race.id}`);
+      if (!feedCache.has(url)) {
+        feedCache.set(url, fetchFeed(url, fetchImpl)
+          .then(text => parseDelimited(text, schema)));
+      }
+      return feedCache.get(url);
+    }
+
+    for (const race of manifest.races) {
+      try {
+        const rows = await rowsFor(race);
+        results.push(resolveRace(race, rows));
+      } catch (err) {
+        errors.push({ raceId: race.id, message: err.message });
+        results.push({ raceId: race.id, displayTitle: race.displayTitle, status: 'error', reason: err.message });
+      }
+    }
+
+    const summary = results.reduce((acc, r) => {
+      acc[r.status] = (acc[r.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return { summary, results, errors };
+  }
+
+  global.WinonaElectionParser = {
+    DEFAULT_SCHEMA,
+    parseDelimited,
+    groupRows,
+    resolveRace,
+    buildViewModel,
+    resolveManifest,
+    _norm: norm
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function(){
+  'use strict';
+  const ROOT = document.getElementById('wde-election-results');
+  if (!ROOT || !window.WINONA_ELECTION_MANIFEST_V2 || !window.WinonaElectionParser) return;
+
+  const manifest = window.WINONA_ELECTION_MANIFEST_V2;
+  const parser = window.WinonaElectionParser;
+  const manual = window.WDE_MANUAL_WINNERS || {};
+  const categoryLabels = {
+    federal:'Federal', statewide:'Statewide', legislature:'Minnesota Legislature',
+    county:'Winona County', city:'Cities', township:'Townships', school:'School districts',
+    judiciary:'Judiciary', ballot_question:'Ballot questions'
+  };
+  const categoryOrder = ['federal','statewide','legislature','county','city','township','school','judiciary','ballot_question'];
+
+  const sectionsEl = ROOT.querySelector('#wde-er-sections');
+  const updatedEl = ROOT.querySelector('#wde-er-updated');
+  const navEl = ROOT.querySelector('#wde-er-nav');
+  const refreshBtn = ROOT.querySelector('#wde-er-refresh');
+  const expandAllBtn = ROOT.querySelector('#wde-er-expand-all');
+  const CATEGORY_STATE_KEY = 'wde-election-open-categories-v1';
+  const RESULTS_SNAPSHOT_KEY = 'wde-election-last-good-results-v1';
+  const RESULTS_SNAPSHOT_VERSION = 1;
+  const RELAY_FETCH_TIMEOUT_MS = 8000;
+  const STALE_BUNDLE_THRESHOLD_MS = 30 * 60 * 1000;
+  const openCategories = new Set();
+  let refreshing = false;
+  let lastSuccessfulGeneratedAt = null;
+  let lastMatchAuditSignature = '';
+  let lastRelaySource = null;
+  let lastRelaySelectionSignature = '';
+
+  const MATCH_AUDIT_METHODS = new Set([
+    'partialCandidateSet',
+    'office+district+candidateSet'
+  ]);
+
+  function auditFallbackMatches(results, generatedAt){
+    const races = (results || [])
+      .filter(r => r && r.status === 'resolved' && MATCH_AUDIT_METHODS.has(r.method))
+      .map(r => ({
+        raceId: r.raceId,
+        displayTitle: r.displayTitle,
+        method: r.method,
+        officeId: r.officeId || null,
+        officeName: r.officeName || null,
+        district: r.district || null,
+        countyId: r.countyId || null,
+        candidateMatchScore: r.candidateMatchScore
+      }));
+
+    window.WDE_MATCH_AUDIT_REPORT = {
+      generatedAt: generatedAt || null,
+      count: races.length,
+      races
+    };
+
+    const signature = JSON.stringify(races.map(r => [r.raceId, r.method, r.officeId, r.officeName, r.district, r.candidateMatchScore]));
+    if (signature === lastMatchAuditSignature) return;
+    lastMatchAuditSignature = signature;
+
+    if (!window.console) return;
+    if (!races.length) {
+      console.info('[WDE election match audit] No races currently rely on partialCandidateSet or office+district+candidateSet.');
+      return;
+    }
+
+    console.warn('[WDE election match audit] '+races.length+' race'+(races.length===1?'':'s')+' resolved through fallback matching. Review before Election Day.');
+    if (typeof console.table === 'function') console.table(races);
+    else races.forEach(r => console.warn('[WDE election match audit]', r));
+  }
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function norm(s){return parser._norm(s);}
+  function fmtVotes(n){return Number(n||0).toLocaleString('en-US');}
+  function fmtPct(n){return Number(n||0).toFixed(1)+'%';}
+
+  function manualWinnersFor(race){
+    const raw = manual[race.id];
+    if (!raw) return [];
+    const arr = Array.isArray(raw) ? raw : [raw];
+    const valid = new Set((race.candidates||[]).map(c=>norm(c.displayName||c.sosName)).concat((race.options||[]).map(norm)));
+    return arr.filter(Boolean).filter(name=>valid.has(norm(name))).slice(0, Math.max(1, race.electN||1));
+  }
+
+  function automaticWinners(vm){
+    if (!vm || vm.totalPrecincts <= 0 || vm.precinctsReporting !== vm.totalPrecincts) return [];
+    const electN = Math.max(1, vm.electN||1);
+    // The SOS may return an aggregate Write-in row. Display and count it,
+    // but do not automatically declare the generic row a winner because
+    // it does not identify the individual write-in candidate who won.
+    const sorted = vm.candidates
+      .filter(c => !/^write[- ]?in$/i.test(String(c.name || c.sosName || '').trim()))
+      .slice()
+      .sort((a,b)=>b.votes-a.votes);
+    if (!sorted.length) return [];
+    if (electN === 1) {
+      if (sorted.length > 1 && sorted[0].votes === sorted[1].votes) return [];
+      return [sorted[0].name];
+    }
+    if (sorted.length <= electN) return sorted.map(c=>c.name);
+    const cutoff = sorted[electN-1].votes;
+    const next = sorted[electN].votes;
+    if (cutoff === next) return [];
+    return sorted.slice(0,electN).map(c=>c.name);
+  }
+
+  function winnersFor(race, vm){
+    const isComplete = !!vm && vm.totalPrecincts > 0 && vm.precinctsReporting === vm.totalPrecincts;
+    if (isComplete) return {names:automaticWinners(vm), manual:false};
+    const mw = manualWinnersFor(race);
+    if (mw.length) return {names:mw, manual:true};
+    return {names:[], manual:false};
+  }
+
+  function candidateHtml(c, winners, hasResults){
+    const isWinner = winners.names.some(n=>norm(n)===norm(c.name));
+    const party = c.party ? ' <span class="wde-party">('+esc(c.party)+')</span>' : '';
+    const incumbent = c.incumbent ? ' <strong>(I)</strong>' : '';
+    const check = isWinner ? ' <span class="wde-winner" aria-label="Winner">&#10003;</span>' : '';
+    const called = isWinner && winners.manual ? ' <span class="wde-called">Called</span>' : '';
+    const voteHtml = hasResults ? '<div class="wde-vote">'+fmtVotes(c.votes)+' &middot; '+fmtPct(c.percent)+'</div>' : '';
+    const barHtml = hasResults ? '<div class="wde-bar" aria-hidden="true"><span style="width:'+Math.max(0, Math.min(100, Number(c.percent||0)))+'%"></span></div>' : '';
+    return '<div class="wde-candidate"><div class="wde-candidate-line"><div class="wde-candidate-name">'+esc(c.name)+incumbent+party+check+called+'</div>'+voteHtml+'</div>'+barHtml+'</div>';
+  }
+
+  function configuredViewModel(race){
+    const candidates = race.category === 'ballot_question'
+      ? (race.options || ['YES','NO']).map(name=>({name, sosName:name, incumbent:false, party:null, votes:0, percent:0}))
+      : (race.candidates || []).map(c=>({
+          name: c.displayName || c.sosName,
+          sosName: c.sosName,
+          incumbent: c.incumbent === true,
+          party: c.party || null,
+          votes: 0,
+          percent: 0
+        }));
+    return {
+      raceId: race.id,
+      title: race.displayTitle,
+      category: race.category,
+      jurisdiction: race.jurisdiction,
+      electN: race.electN || 1,
+      precinctsReporting: 0,
+      totalPrecincts: 0,
+      totalOfficeVotes: 0,
+      candidates
+    };
+  }
+
+  function displayRaceTitle(race){
+    const suffix = Number(race.electN||1) > 1 ? ' (elect ' + Number(race.electN) + ')' : '';
+    return race.displayTitle + suffix;
+  }
+
+  function raceHtml(race, result){
+    const resolved = result && result.status === 'resolved';
+    const vm = resolved ? parser.buildViewModel(race,result) : configuredViewModel(race);
+    if (!vm) return '';
+    const winners = winnersFor(race,vm);
+    const hasResults = resolved && vm.totalPrecincts > 0;
+    const reporting = hasResults
+      ? vm.precinctsReporting+' of '+vm.totalPrecincts+' precincts reporting ('+Math.round((vm.precinctsReporting/vm.totalPrecincts)*100)+'%)'
+      : 'No results reported yet';
+    const totalVotes = hasResults
+      ? '<div class="wde-total-votes">Total votes counted: '+fmtVotes(vm.totalOfficeVotes)+'</div>'
+      : '';
+    let body = vm.candidates.map(c=>candidateHtml(c,winners,hasResults)).join('');
+    if (!body) body = '<div class="wde-error">No candidate filed.</div>';
+    const questionText = race.category === 'ballot_question' && race.fullQuestion ? '<div class="wde-question-text">'+esc(race.fullQuestion)+'</div>' : '';
+    return '<article class="wde-race" data-race-id="'+esc(race.id)+'"><h4>'+esc(displayRaceTitle(race))+'</h4>'+questionText+'<div class="wde-reporting">'+esc(reporting)+'</div>'+totalVotes+body+'</article>';
+  }
+
+  function availableCategories(){
+    return categoryOrder.filter(cat=>manifest.races.some(r=>r.category===cat));
+  }
+
+  function renderNav(){
+    navEl.innerHTML = availableCategories().map(cat=>'<a href="#wde-'+cat+'" data-category="'+esc(cat)+'">'+esc(categoryLabels[cat]||cat)+'</a>').join('');
+  }
+
+  function updateExpandAllButton(){
+    if (!expandAllBtn) return;
+    const cats = availableCategories();
+    const allOpen = cats.length > 0 && cats.every(cat=>openCategories.has(cat));
+    expandAllBtn.setAttribute('aria-expanded', allOpen ? 'true' : 'false');
+    expandAllBtn.textContent = allOpen ? 'Collapse all results' : 'Expand all results';
+  }
+
+  function loadCategoryState(){
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(CATEGORY_STATE_KEY) || '[]');
+      if (!Array.isArray(stored)) return;
+      stored.forEach(cat=>{
+        if (categoryOrder.includes(cat)) openCategories.add(cat);
+      });
+    } catch (err) {
+      // localStorage can be unavailable in privacy-restricted contexts.
+    }
+  }
+
+  function saveCategoryState(){
+    try {
+      window.localStorage.setItem(CATEGORY_STATE_KEY, JSON.stringify(Array.from(openCategories)));
+    } catch (err) {
+      // The accordion still works for this page view if storage is unavailable.
+    }
+  }
+
+  function setCategoryOpen(cat, open, persist){
+    if (!categoryOrder.includes(cat)) return;
+    if (open) openCategories.add(cat);
+    else openCategories.delete(cat);
+    const section = ROOT.querySelector('#wde-'+cat);
+    if (section) {
+      section.classList.toggle('is-open', open);
+      const button = section.querySelector('.wde-er-category-toggle');
+      if (button) button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    if (persist !== false) saveCategoryState();
+    updateExpandAllButton();
+  }
+
+  function render(results){
+    const byId = new Map(results.map(r=>[r.raceId,r]));
+    sectionsEl.innerHTML = categoryOrder.map(cat=>{
+      const races = manifest.races.filter(r=>r.category===cat);
+      if (!races.length) return '';
+      const open = openCategories.has(cat);
+      const panelId = 'wde-'+cat+'-results';
+      const label = esc(categoryLabels[cat]||cat);
+      return '<section class="wde-er-section'+(open?' is-open':'')+'" id="wde-'+cat+'">'+
+        '<h3><span class="wde-er-section-title-text">'+label+'</span>'+
+        '<button type="button" class="wde-er-category-toggle" data-category="'+esc(cat)+'" aria-expanded="'+(open?'true':'false')+'" aria-controls="'+panelId+'">'+
+        '<span>'+label+'</span><span class="wde-er-category-toggle-icon" aria-hidden="true">&#9660;</span></button></h3>'+
+        '<div class="wde-er-grid" id="'+panelId+'">'+races.map(r=>raceHtml(r,byId.get(r.id))).join('')+'</div></section>';
+    }).join('');
+    updateExpandAllButton();
+  }
+
+  function feedFilename(url){
+    try {
+      const cleanUrl = String(url || '').split('?')[0];
+      return decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+    } catch (e) {
+      return String(url || '').substring(String(url || '').lastIndexOf('/') + 1);
+    }
+  }
+
+  function configuredRelayUrls(items){
+    return items.filter((item,index,list)=>
+      item.url &&
+      item.url.indexOf('YOUR-GITHUB-USERNAME') === -1 &&
+      list.findIndex(other=>other.url===item.url)===index
+    );
+  }
+
+  function primaryRelayUrls(){
+    return configuredRelayUrls([
+      {name:'GitHub Pages', url:window.WDE_GITHUB_RESULTS_URL || ''},
+      {name:'Azure Static Web Apps', url:window.WDE_AZURE_RESULTS_URL || ''}
+    ]);
+  }
+
+  function fallbackRelayUrls(){
+    return configuredRelayUrls([
+      {name:'raw GitHub', url:window.WDE_GITHUB_RESULTS_FALLBACK_URL || ''}
+    ]);
+  }
+
+  function validateRelayBundle(bundle){
+    if (!bundle || typeof bundle !== 'object' || !bundle.feeds || typeof bundle.feeds !== 'object') {
+      throw new Error('Relay response did not contain a feeds object.');
+    }
+    return bundle;
+  }
+
+  function relayGeneratedMs(bundle){
+    const value = bundle && bundle.meta && bundle.meta.generatedAt;
+    const ms = value ? new Date(value).getTime() : NaN;
+    return Number.isFinite(ms) ? ms : NaN;
+  }
+
+  async function fetchRelayUrl(base, sourceName){
+    const separator = base.indexOf('?') === -1 ? '?' : '&';
+    // Minute-level cache buster avoids stale browser/CDN copies without
+    // generating a brand-new URL more often than the display refresh cadence.
+    const url = base + separator + 't=' + Math.floor(Date.now() / 60000);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(function(){ controller.abort(); }, RELAY_FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, {
+        cache:'no-store',
+        credentials:'omit',
+        signal:controller.signal
+      });
+      if (!response.ok) throw new Error(sourceName+' returned HTTP '+response.status+'.');
+      const bundle = validateRelayBundle(await response.json());
+      const generatedMs = relayGeneratedMs(bundle);
+      if (!Number.isFinite(generatedMs)) {
+        throw new Error(sourceName+' did not contain a valid meta.generatedAt timestamp.');
+      }
+      return {bundle, source:sourceName, generatedMs, generatedAt:bundle.meta.generatedAt};
+    } catch (err) {
+      if (err && err.name === 'AbortError') {
+        throw new Error(sourceName+' timed out after '+Math.round(RELAY_FETCH_TIMEOUT_MS / 1000)+' seconds.');
+      }
+      throw err;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
+  function relayAttemptRecord(endpoint, result){
+    if (result && result.ok) {
+      return {
+        source:endpoint.name,
+        url:endpoint.url,
+        ok:true,
+        generatedAt:result.loaded.generatedAt,
+        generatedMs:result.loaded.generatedMs,
+        error:null
+      };
+    }
+    return {
+      source:endpoint.name,
+      url:endpoint.url,
+      ok:false,
+      generatedAt:null,
+      generatedMs:null,
+      error:result && result.error ? result.error : 'Unknown relay error.'
+    };
+  }
+
+  function reportRelaySelection(attempts, chosen){
+    const publicAttempts = attempts.map(item=>({
+      source:item.source,
+      ok:item.ok,
+      generatedAt:item.generatedAt || null,
+      error:item.error || null
+    }));
+    window.WDE_RELAY_STATUS = {
+      checkedAt:new Date().toISOString(),
+      selectedSource:chosen ? chosen.source : null,
+      selectedGeneratedAt:chosen ? chosen.generatedAt : null,
+      attempts:publicAttempts
+    };
+
+    const signature = JSON.stringify({
+      selectedSource:window.WDE_RELAY_STATUS.selectedSource,
+      selectedGeneratedAt:window.WDE_RELAY_STATUS.selectedGeneratedAt,
+      attempts:publicAttempts
+    });
+    if (signature === lastRelaySelectionSignature) return;
+    lastRelaySelectionSignature = signature;
+
+    if (!window.console) return;
+    if (chosen) {
+      console.info('[WDE election relay] Selected '+chosen.source+' bundle generated '+chosen.generatedAt+'.');
+    }
+    const failed = publicAttempts.filter(item=>!item.ok);
+    failed.forEach(item=>console.warn('[WDE election relay] '+item.source+' unavailable: '+item.error));
+    if (typeof console.table === 'function') console.table(publicAttempts);
+  }
+
+  async function loadRelayBundle(){
+    const primaryEndpoints = primaryRelayUrls();
+    const fallbackEndpoints = fallbackRelayUrls();
+    if (!primaryEndpoints.length && !fallbackEndpoints.length) {
+      throw new Error('Election relay URLs have not been configured in the BLOX asset.');
+    }
+
+    // GitHub Pages and Azure are independent collection/publishing paths. Fetch
+    // them concurrently and prefer the valid bundle with the newest generatedAt.
+    const primaryResults = await Promise.all(primaryEndpoints.map(async endpoint=>{
+      try {
+        const loaded = await fetchRelayUrl(endpoint.url, endpoint.name);
+        return {ok:true, endpoint, loaded};
+      } catch (err) {
+        return {ok:false, endpoint, error:err && err.message ? err.message : String(err)};
+      }
+    }));
+
+    const attempts = primaryResults.map(result=>relayAttemptRecord(result.endpoint, result));
+    const successful = primaryResults
+      .filter(result=>result.ok)
+      .map(result=>result.loaded)
+      .sort((a,b)=>b.generatedMs-a.generatedMs);
+    let chosen = successful.length ? successful[0] : null;
+
+    // raw.githubusercontent.com shares GitHub's upstream collection path, so it
+    // is not an independent active-active peer. Use it only when both primary
+    // hosts fail, or when the freshest primary bundle is already over 30 minutes
+    // old and raw GitHub might contain a newer committed bundle than Pages.
+    const chosenTooOld = chosen && (Date.now() - chosen.generatedMs > STALE_BUNDLE_THRESHOLD_MS);
+    if ((!chosen || chosenTooOld) && fallbackEndpoints.length) {
+      for (const endpoint of fallbackEndpoints) {
+        try {
+          const loaded = await fetchRelayUrl(endpoint.url, endpoint.name);
+          attempts.push(relayAttemptRecord(endpoint,{ok:true,loaded}));
+          if (!chosen || loaded.generatedMs > chosen.generatedMs) chosen = loaded;
+          break;
+        } catch (err) {
+          attempts.push(relayAttemptRecord(endpoint,{
+            ok:false,
+            error:err && err.message ? err.message : String(err)
+          }));
+        }
+      }
+    }
+
+    if (!chosen) {
+      lastRelaySource = null;
+      reportRelaySelection(attempts,null);
+      const errors = attempts.filter(item=>!item.ok).map(item=>item.source+': '+item.error);
+      throw new Error('All election relay endpoints failed. '+errors.join(' '));
+    }
+
+    lastRelaySource = chosen.source;
+    reportRelaySelection(attempts,chosen);
+    return chosen.bundle;
+  }
+
+  function saveResultsSnapshot(resolved, generatedAt){
+    if (!resolved || !Array.isArray(resolved.results) || !resolved.results.length) return;
+    // Do not overwrite a good snapshot with a bundle that failed to resolve races.
+    const errorCount = (resolved.summary && ((resolved.summary.unmatched||0)+(resolved.summary.ambiguous||0)+(resolved.summary.error||0))) || 0;
+    if (errorCount) return;
+    const snapshot = {
+      version:RESULTS_SNAPSHOT_VERSION,
+      generatedAt:generatedAt || null,
+      savedAt:new Date().toISOString(),
+      source:lastRelaySource || null,
+      results:resolved.results
+    };
+    try {
+      window.localStorage.setItem(RESULTS_SNAPSHOT_KEY, JSON.stringify(snapshot));
+    } catch (err) {
+      // Live results remain usable if storage is full or unavailable.
+    }
+  }
+
+  function loadResultsSnapshot(){
+    try {
+      const snapshot = JSON.parse(window.localStorage.getItem(RESULTS_SNAPSHOT_KEY) || 'null');
+      if (!snapshot || snapshot.version !== RESULTS_SNAPSHOT_VERSION || !Array.isArray(snapshot.results)) return null;
+      if (snapshot.results.length !== manifest.races.length) return null;
+      const ids = new Set(snapshot.results.map(item=>item && item.raceId).filter(Boolean));
+      if (manifest.races.some(race=>!ids.has(race.id))) return null;
+      return snapshot;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function relayFetch(bundle){
+    return async function(sosUrl){
+      const file = feedFilename(sosUrl);
+      const entry = bundle.feeds && bundle.feeds[file];
+      if (!entry || !entry.available || !entry.text) {
+        return {
+          ok:false,
+          status:503,
+          text:async function(){ return ''; }
+        };
+      }
+      return {
+        ok:true,
+        status:200,
+        text:async function(){ return entry.text; }
+      };
+    };
+  }
+
+  function fmtRelayTime(value){
+    if (!value) return '--';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '--';
+    return d.toLocaleTimeString('en-US',{
+      hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'
+    })+' CT';
+  }
+
+  async function refresh(){
+    if (refreshing) return;
+    refreshing = true;
+    refreshBtn.disabled = true;
+    updatedEl.textContent = 'Updating results...';
+    try {
+      const bundle = await loadRelayBundle();
+      const resolved = await parser.resolveManifest(manifest, relayFetch(bundle));
+      render(resolved.results);
+
+      const meta = bundle.meta || {};
+      saveResultsSnapshot(resolved, meta.generatedAt);
+      auditFallbackMatches(resolved.results, meta.generatedAt);
+      const bad = (resolved.summary.unmatched||0)+(resolved.summary.ambiguous||0)+(resolved.summary.error||0);
+      const fresh = Number(meta.successfulFeeds||0);
+      const stale = Number(meta.staleFeeds||0);
+      const unavailable = Number(meta.unavailableFeeds||0);
+      const generatedLabel = fmtRelayTime(meta.generatedAt);
+      if (meta.generatedAt) lastSuccessfulGeneratedAt = meta.generatedAt;
+
+      // GitHub scheduled workflows can occasionally start late. Treat the entire
+      // relay bundle as stale when its generation timestamp is more than 30
+      // minutes old, even if every individual SOS feed is otherwise healthy.
+      const generatedMs = meta.generatedAt ? new Date(meta.generatedAt).getTime() : NaN;
+      const bundleAgeMs = Number.isFinite(generatedMs) ? Math.max(0, Date.now() - generatedMs) : 0;
+      const bundleTooOld = Number.isFinite(generatedMs) && bundleAgeMs > STALE_BUNDLE_THRESHOLD_MS;
+
+      const warnings = [];
+      if (stale) warnings.push(stale+' state feed'+(stale===1?' is':'s are')+' using cached data');
+      if (unavailable) warnings.push(unavailable+' state feed'+(unavailable===1?' is':'s are')+' unavailable');
+      if (bad) warnings.push(bad+' race'+(bad===1?' is':'s are')+' awaiting a data match');
+
+      if (unavailable) {
+        updatedEl.textContent = 'Some results are temporarily unavailable. Last updated: '+generatedLabel+'.'+(warnings.length?' '+warnings.join('; ')+'.':'');
+      } else if (stale || bundleTooOld) {
+        updatedEl.textContent = 'Results may be delayed. Last updated: '+generatedLabel+'.'+(warnings.length?' '+warnings.join('; ')+'.':'');
+      } else if (bad) {
+        updatedEl.textContent = 'Some results are awaiting a data update. Last updated: '+generatedLabel+'.'+(warnings.length?' '+warnings.join('; ')+'.':'');
+      } else {
+        updatedEl.textContent = 'Last updated: '+generatedLabel;
+      }
+    } catch(err) {
+      const snapshot = loadResultsSnapshot();
+      if (snapshot) {
+        render(snapshot.results);
+        if (snapshot.generatedAt) lastSuccessfulGeneratedAt = snapshot.generatedAt;
+        const lastGood = fmtRelayTime(snapshot.generatedAt || snapshot.savedAt);
+        updatedEl.textContent = 'Results may be delayed. Showing the most recent available results. Last updated: '+lastGood+'.';
+        if (window.console) console.warn('[WDE election relay] Live relay unavailable; showing browser-saved election snapshot.', err);
+      } else {
+        // First-time visitors still get candidate rosters if no live relay or saved snapshot is available.
+        render(manifest.races.map(r=>({raceId:r.id,displayTitle:r.displayTitle,status:'error',reason:err.message})));
+        const lastGood = lastSuccessfulGeneratedAt ? fmtRelayTime(lastSuccessfulGeneratedAt) : null;
+        updatedEl.textContent = lastGood
+          ? 'Live results are temporarily unavailable. Last updated: '+lastGood+'.'
+          : 'Live results are temporarily unavailable.';
+      }
+    } finally {
+      refreshBtn.disabled = false;
+      refreshing = false;
+    }
+  }
+
+  renderNav();
+
+  sectionsEl.addEventListener('click',function(event){
+    const button = event.target.closest('.wde-er-category-toggle');
+    if (!button) return;
+    const cat = button.getAttribute('data-category');
+    setCategoryOpen(cat, button.getAttribute('aria-expanded') !== 'true');
+  });
+
+  navEl.addEventListener('click',function(event){
+    const link = event.target.closest('a[data-category]');
+    if (!link) return;
+    const cat = link.getAttribute('data-category');
+    const section = ROOT.querySelector('#wde-'+cat);
+    if (!section) return;
+    event.preventDefault();
+    setCategoryOpen(cat, true);
+    section.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+
+  if (expandAllBtn) {
+    expandAllBtn.addEventListener('click',function(){
+      const cats = availableCategories();
+      const allOpen = cats.length > 0 && cats.every(cat=>openCategories.has(cat));
+      cats.forEach(cat=>setCategoryOpen(cat,!allOpen,false));
+      saveCategoryState();
+      updateExpandAllButton();
+    });
+  }
+
+  function openHashCategory(){
+    if (!window.location.hash) return;
+    const id = window.location.hash.replace(/^#/,'');
+    const cat = categoryOrder.find(item=>'wde-'+item===id);
+    if (cat) setCategoryOpen(cat,true);
+  }
+
+  refreshBtn.addEventListener('click',refresh);
+  window.addEventListener('hashchange', openHashCategory);
+  loadCategoryState();
+  openHashCategory();
+  refresh();
+  window.setInterval(refresh,60000);
+})();
+</script>
